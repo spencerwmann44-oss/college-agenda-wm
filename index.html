@@ -613,11 +613,30 @@
     font-size:15px;line-height:1;padding:0 2px;flex-shrink:0;
   }
   .notification-toast .nt-close:hover{color:var(--danger);}
+
+  /* Personal preference: use Manrope for the sign-in heading. */
+  #auth-overlay h2 { font-family: "Manrope", sans-serif; }
 </style>
 </head>
 <body>
 <div class="notification-container" id="notification-container"></div>
 
+<div class="overlay show" id="auth-overlay" style="z-index:300;">
+  <div class="modal" style="max-width:420px;">
+    <h2>Sign in to your agenda</h2>
+    <p style="font-size:13px;color:var(--ink-soft);margin:0 0 16px;">Your agenda will sync between devices when you use the same account.</p>
+    <form id="auth-form">
+      <div class="field"><label for="auth-email">Email</label><input type="email" id="auth-email" autocomplete="email" required></div>
+      <div class="field"><label for="auth-password">Password</label><input type="password" id="auth-password" autocomplete="current-password" minlength="6" required></div>
+      <div class="error-text" id="auth-error"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="auth-signup">Create account</button>
+        <button type="submit" class="btn" id="auth-signin">Sign in</button>
+      </div>
+      <div id="auth-status" style="font-size:12px;color:var(--ink-soft);margin-top:12px;text-align:right;"></div>
+    </form>
+  </div>
+</div>
 <div class="start-page" id="start-page">
   <div class="start-page-inner">
     <h1 class="start-heading">
@@ -650,6 +669,7 @@
         <a class="btn secondary" href="https://blackboard.wm.edu" target="_blank" rel="noopener noreferrer">Blackboard</a>
         <a class="btn secondary" href="https://outlook.cloud.microsoft" target="_blank" rel="noopener noreferrer">Outlook</a>
         <button class="btn secondary" id="theme-toggle" type="button">Dark mode</button>
+        <button class="btn secondary" id="signout-btn" type="button">Sign out</button>
       </div>
       <div class="class-timer-bar inactive" id="class-timer-box">
         <button type="button" class="ct-close" id="timer-dismiss-btn" aria-label="Dismiss">×</button>
@@ -1202,22 +1222,103 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* GitHub Pages / normal-browser storage adapter.
-   Replaces the original window.storage API with localStorage. */
+/* Supabase cloud sync configuration. The publishable key is safe for browser apps. */
+window.SUPABASE_URL = "https://owdknqityxvvbmjshvte.supabase.co";
+window.SUPABASE_PUBLISHABLE_KEY = "sb_publishable_h0h3PCWX5La1FyjEVp5sWw_yt_Hej5E";
+window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_PUBLISHABLE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+</script>
+<script>
+/* GitHub Pages + Supabase storage adapter.
+   The agenda data lives in Supabase; localStorage is kept as a small offline cache. */
 (function(){
   const STORAGE_PREFIX = 'collegeAgenda:';
+  const CLOUD_KEYS = [
+    'classes','items','userName','clubs','clubActivities','clubTodos',
+    'breaks','assignmentFolders','theme','viewMode','skipStartPage',
+    'fontDisplay','fontBody','fontAccent','notifiedKeys'
+  ];
+  const localGet = key => localStorage.getItem(STORAGE_PREFIX + key);
+  const localSet = (key, value) => localStorage.setItem(STORAGE_PREFIX + key, String(value));
+  let cloudReady = false;
+  let cloudUser = null;
+  let cloudData = {};
+  let saveTimer = null;
+
+  function cacheCloudData(){
+    CLOUD_KEYS.forEach(k => {
+      if(Object.prototype.hasOwnProperty.call(cloudData,k)) localSet(k, cloudData[k]);
+    });
+  }
+
+  async function pushCloud(){
+    if(!cloudReady || !cloudUser) return;
+    const payload = { user_id: cloudUser.id, data: cloudData, updated_at: new Date().toISOString() };
+    const { error } = await window.supabaseClient.from('agenda_data').upsert(payload, { onConflict:'user_id' });
+    if(error) console.error('Supabase sync error:', error);
+  }
+
+  function schedulePush(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(pushCloud, 350);
+  }
+
+  window.agendaCloud = {
+    get ready(){ return cloudReady; },
+    get user(){ return cloudUser; },
+    async bootstrap(){
+      const { data: sessionData, error: sessionError } = await window.supabaseClient.auth.getSession();
+      if(sessionError) throw sessionError;
+      cloudUser = sessionData.session ? sessionData.session.user : null;
+      if(!cloudUser) return false;
+
+      const { data: row, error } = await window.supabaseClient
+        .from('agenda_data').select('data').eq('user_id', cloudUser.id).maybeSingle();
+      if(error) throw error;
+
+      if(row && row.data && typeof row.data === 'object') {
+        cloudData = row.data;
+        cacheCloudData();
+      } else {
+        // First login: migrate useful data already stored on this device.
+        const localData = {};
+        CLOUD_KEYS.forEach(k => { const v = localGet(k); if(v !== null) localData[k] = v; });
+        cloudData = localData;
+        if(Object.keys(localData).length) await pushCloud();
+      }
+      cloudReady = true;
+      return true;
+    },
+    async refresh(){
+      cloudReady = false;
+      cloudUser = null;
+      cloudData = {};
+      return this.bootstrap();
+    },
+    async signOut(){
+      await window.supabaseClient.auth.signOut();
+      cloudReady = false; cloudUser = null; cloudData = {};
+    },
+    syncNow: pushCloud
+  };
+
   window.storage = {
     async get(key){
-      const value = localStorage.getItem(STORAGE_PREFIX + key);
+      if(cloudReady && Object.prototype.hasOwnProperty.call(cloudData,key)) return { value: cloudData[key] };
+      const value = localGet(key);
       return value === null ? null : { value };
     },
     async set(key, value){
-      localStorage.setItem(STORAGE_PREFIX + key, String(value));
+      localSet(key, value);
+      if(cloudReady){ cloudData[key] = String(value); schedulePush(); }
       return true;
     },
     async delete(key){
       localStorage.removeItem(STORAGE_PREFIX + key);
+      if(cloudReady){ delete cloudData[key]; schedulePush(); }
       return true;
     }
   };
@@ -4276,6 +4377,7 @@ function isoOffset(days){
 }
 
 async function seedMockDataIfEmpty(){
+  if(window.agendaCloud && window.agendaCloud.ready) return;
   try{
     const existing = await window.storage.get('classes', false);
     if(existing) return; // already has data, don't overwrite
@@ -4386,11 +4488,94 @@ async function seedMockDataIfEmpty(){
 }
 
 (async function initWithMockData(){
-  await seedMockDataIfEmpty();
-  loadData();
-  loadTheme();
-  loadViewMode();
+  try {
+    const signedIn = await window.agendaCloud.bootstrap();
+    if(!signedIn){
+      document.getElementById('auth-overlay').classList.add('show');
+      document.getElementById('start-page').style.display = 'none';
+      document.getElementById('app-root').style.display = 'none';
+      return;
+    }
+    document.getElementById('auth-overlay').classList.remove('show');
+    await seedMockDataIfEmpty();
+    await loadData();
+    loadTheme();
+    loadViewMode();
+  } catch(e) {
+    console.error('Could not initialize cloud agenda:', e);
+    const err = document.getElementById('auth-error');
+    err.textContent = 'Could not connect to the cloud. Check your Supabase table/API settings and try again.';
+    err.classList.add('show');
+  }
 })();
+
+async function handleAuthError(error){
+  const el = document.getElementById('auth-error');
+  el.textContent = error && error.message ? error.message : 'Something went wrong. Please try again.';
+  el.classList.add('show');
+}
+
+document.getElementById('auth-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const status = document.getElementById('auth-status');
+  const btn = document.getElementById('auth-signin');
+  document.getElementById('auth-error').classList.remove('show');
+  btn.disabled = true; status.textContent = 'Signing in…';
+  try {
+    const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+    if(error) throw error;
+    await window.agendaCloud.refresh();
+    document.getElementById('auth-overlay').classList.remove('show');
+    await seedMockDataIfEmpty();
+    await loadData();
+    loadTheme(); loadViewMode();
+    status.textContent = '';
+  } catch(error) { await handleAuthError(error); status.textContent = ''; }
+  finally { btn.disabled = false; }
+});
+
+document.getElementById('auth-signup').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const status = document.getElementById('auth-status');
+  document.getElementById('auth-error').classList.remove('show');
+  if(!email || password.length < 6){
+    await handleAuthError({message:'Enter an email and a password of at least 6 characters.'}); return;
+  }
+  status.textContent = 'Creating account…';
+  try {
+    const { data, error } = await window.supabaseClient.auth.signUp({
+      email, password, options:{ emailRedirectTo: window.location.href }
+    });
+    if(error) throw error;
+    if(data.session){
+      await window.agendaCloud.refresh();
+      document.getElementById('auth-overlay').classList.remove('show');
+      await loadData(); loadTheme(); loadViewMode();
+      status.textContent = '';
+    } else {
+      status.textContent = 'Account created. Check your email to confirm it, then sign in.';
+    }
+  } catch(error) { await handleAuthError(error); status.textContent = ''; }
+});
+
+document.getElementById('signout-btn').addEventListener('click', async () => {
+  await window.agendaCloud.signOut();
+  document.getElementById('app-root').style.display = 'none';
+  document.getElementById('start-page').style.display = 'none';
+  document.getElementById('auth-overlay').classList.add('show');
+});
+
+window.supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+  if(session && !window.agendaCloud.ready){
+    try {
+      await window.agendaCloud.refresh();
+      document.getElementById('auth-overlay').classList.remove('show');
+    } catch(e) { console.error(e); }
+  }
+});
 
 async function loadTheme(){
   let theme = 'dark';
