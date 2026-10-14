@@ -1,17 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<script>
+/* Always open in dark mode: set it before first paint and revert any outside change (e.g. the host viewer's own theme). Only the in-app toggle may switch it. */
+(function(){
+  var h = document.documentElement;
+  window.__allowTheme = false;
+  h.setAttribute('data-theme','dark');
+  new MutationObserver(function(){
+    if(!window.__allowTheme && h.getAttribute('data-theme') !== 'dark') h.setAttribute('data-theme','dark');
+  }).observe(h,{attributes:true,attributeFilter:['data-theme']});
+})();
+</script>
 <title>Coursework — Weekly Agenda</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* Public browser configuration. The publishable key is intended for client-side use;
+   table access is protected by Supabase Auth and row-level security. */
+window.SUPABASE_URL = "https://owdknqityxvvbmjshvte.supabase.co";
+window.SUPABASE_PUBLISHABLE_KEY = "sb_publishable_h0h3PCWX5La1FyjEVp5sWw_yt_Hej5E";
+if (window.supabase && window.SUPABASE_URL && window.SUPABASE_PUBLISHABLE_KEY) {
+  window.supabaseClient = window.supabase.createClient(
+    window.SUPABASE_URL,
+    window.SUPABASE_PUBLISHABLE_KEY,
+    { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
+  );
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Space+Grotesk:wght@400;700&family=Manrope:wght@400;700&family=Poppins:wght@400;700&family=Work+Sans:wght@400;700&family=Nunito+Sans:wght@400;700&family=Rubik:wght@400;700&family=Sora:wght@400;700&family=Outfit:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=DM+Sans:wght@400;700&family=Karla:wght@400;700&family=Mulish:wght@400;700&family=Urbanist:wght@400;700&family=Lexend:wght@400;700&family=Figtree:wght@400;700&family=Barlow:wght@400;700&family=Josefin+Sans:wght@400;700&family=Archivo:wght@400;700&family=Epilogue:wght@400;700&family=Source+Serif+4:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=Merriweather:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Crimson+Pro:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Space+Grotesk:wght@400;700&family=Manrope:wght@400;700&family=Poppins:wght@400;700&family=Work+Sans:wght@400;700&family=Nunito+Sans:wght@400;700&family=Rubik:wght@400;700&family=Sora:wght@400;700&family=Outfit:wght@400;700&family=Plus+Jakarta+Sans:wght@400;700&family=DM+Sans:wght@400;700&family=Karla:wght@400;700&family=Mulish:wght@400;700&family=Urbanist:wght@400;700&family=Lexend:wght@400;700&family=Figtree:wght@400;700&family=Barlow:wght@400;700&family=Josefin+Sans:wght@400;700&family=Archivo:wght@400;700&family=Epilogue:wght@400;700&family=Source+Serif+4:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=Merriweather:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Crimson+Pro:wght@400;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --font-body:'Inter',sans-serif;
-    --font-display:'Space Grotesk',sans-serif;
-    --font-accent:'Manrope',sans-serif;
+    --font-display:'Manrope',sans-serif;
+    --font-accent:'Merriweather',serif;
     --paper:#FFFFFF;
     --paper-card:#F5F8FC;
     --input-bg:#FFFFFF;
@@ -134,13 +160,13 @@
     --paper:#05070D;--ink:#D9E1EC;--ink-soft:#7C8CA3;--line:#1B2738;--line-soft:#12192A;
     --brass:#2A3B52;--btn-bg:#0D1422;--btn-text:#D9E1EC;
     background:
-      radial-gradient(ellipse 70% 55% at 18% 15%, rgba(48,84,168,0.26), transparent 60%),
-      radial-gradient(ellipse 65% 55% at 82% 75%, rgba(38,66,150,0.24), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(28,54,120,0.22), transparent 62%),
+      radial-gradient(ellipse 70% 55% at 18% 15%, rgba(48,84,168,0.18), transparent 60%),
+      radial-gradient(ellipse 65% 55% at 82% 75%, rgba(38,66,150,0.16), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(28,54,120,0.14), transparent 62%),
       #05070D;
     background-size:220% 220%, 220% 220%, 220% 220%, 100% 100%;
     background-attachment:fixed, fixed, fixed, fixed;
-    animation:start-bg-drift 16s ease-in-out infinite alternate;
+    background-position:60% 45%, 40% 55%, 55% 70%, 0 0; /* static: no background drift */
   }
   @keyframes start-bg-drift{
     0%{background-position:0% 0%, 100% 100%, 50% 100%, 0 0;}
@@ -152,11 +178,36 @@
   }
   .start-page-inner{max-width:640px;}
   .start-heading{
-    font-family:'Manrope',sans-serif;font-weight:700;line-height:1.18;
-    font-size:56px;color:var(--ink);margin-bottom:40px;
+    font-family:var(--font-display);font-weight:700;line-height:1.18;
+    font-size:56px;color:var(--ink);margin-bottom:0;
   }
   .start-heading span{display:block;}
-  .start-heading span.accent{color:#5C8FE8;}
+  .start-heading span.accent{color:#33509C;}
+
+  /* ---- Start page intro animation: logo draws in, then text and button rise in ---- */
+  .start-logo{color:var(--ink);width:min(250px,62vw);margin:0 auto 30px;}
+  .start-logo svg{display:block;width:100%;height:auto;overflow:visible;}
+  .start-logo .sl-c-fill{opacity:0;}
+  .start-logo .sl-c-draw{stroke-dasharray:1;stroke-dashoffset:1;stroke-linejoin:round;}
+  .start-logo .sl-bar{transform-box:fill-box;transform-origin:left center;transform:scaleX(0);}
+  .start-logo .sl-text{opacity:0;}
+  .sp-anim{opacity:0;}
+  .start-page.playing .sl-c-draw{animation:sl-draw 1.5s cubic-bezier(.45,.05,.25,1) both;}
+  .start-page.playing .sl-c-fill{animation:sl-fill .7s ease .9s both;}
+  .start-page.playing .sl-bar{animation:sl-bar .75s cubic-bezier(.2,.8,.2,1) 1.35s both;}
+  .start-page.playing .sl-text{animation:sl-text .55s ease 1.9s both;}
+  .start-page.playing .sp-h1{animation:sp-rise .7s ease 2.4s both;}
+  .start-page.playing .sp-h2{animation:sp-rise .7s ease 2.65s both;}
+  @keyframes sl-draw{0%{stroke-dashoffset:1;opacity:1;}70%{stroke-dashoffset:0;opacity:1;}100%{stroke-dashoffset:0;opacity:0;}}
+  @keyframes sl-fill{from{opacity:0;}to{opacity:1;}}
+  @keyframes sl-bar{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+  @keyframes sl-text{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  @keyframes sp-rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: reduce){
+    .start-page .sp-anim, .start-page .sl-c-fill, .start-page .sl-text{opacity:1 !important;animation:none !important;transform:none !important;}
+    .start-page .sl-bar{transform:none !important;animation:none !important;}
+    .start-page .sl-c-draw{display:none;}
+  }
   .start-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
   .start-page .start-actions .btn{
     padding:12px 30px;font-size:14.5px;border-radius:4px;
@@ -164,10 +215,10 @@
     transition:background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
   .start-page .start-actions #start-agenda-btn{
-    padding:14px 60px;min-width:280px;
+    padding:14px 36px;min-width:280px;max-width:100%;
   }
   .start-page .start-actions .btn:hover{
-    background:#5C8FE8;border-color:#5C8FE8;color:#fff;
+    background:#33509C;border-color:#33509C;color:#fff;
   }
   .start-skip-btn{
     display:block;margin:22px auto 0;background:none;border:none;cursor:pointer;
@@ -219,6 +270,8 @@
     color:#fff;font-size:18px;line-height:1;cursor:pointer;padding:2px 4px;opacity:0.8;
   }
   .class-timer-bar.celebrating .ct-close:hover{opacity:1;}
+  /* Mobile: exam-complete close button sits top-left */
+  html[data-view="mobile"] .class-timer-bar.celebrating .ct-close{right:auto;left:10px;}
   .class-timer-bar .ct-line{font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;line-height:1.15;}
   .class-timer-bar .ct-time{font-size:19px;font-weight:700;font-family:var(--font-display);line-height:1.1;}
   .class-timer-bar.inactive .ct-time{display:none;}
@@ -395,6 +448,7 @@
   .activity-row .item-link{font-size:12px;}
   .add-activity-link{background:none;border:none;color:var(--brass);font-size:12.5px;cursor:pointer;padding:0;margin-top:10px;font-weight:500;}
   .add-activity-link:hover{text-decoration:underline;}
+  html[data-theme="dark"] .add-activity-link{color:#8FB0DC;font-weight:600;}
   .no-activities{font-size:12.5px;color:var(--ink-soft);font-style:italic;}
   .club-section-label{font-size:11px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.03em;margin-top:14px;margin-bottom:2px;}
   .cal-link{font-size:12px;color:var(--ink-soft);text-decoration:none;margin-left:8px;}
@@ -493,6 +547,23 @@
   html[data-view="mobile"] #header-actions-row{width:100%;flex-wrap:wrap;gap:10px;}
   html[data-view="mobile"] #header-quick-links{flex-wrap:wrap;gap:8px;justify-content:center;width:100%;}
   html[data-view="mobile"] .class-timer-bar{width:100%;max-width:none;box-sizing:border-box;}
+  /* Mobile timer (active): label block on the left, countdown on the right */
+  .class-timer-bar .ct-m-text{display:none;}
+  html[data-view="mobile"] .class-timer-bar:not(.inactive):not(.celebrating){
+    flex-direction:row;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;text-align:left;
+  }
+  html[data-view="mobile"] .class-timer-bar:not(.inactive):not(.celebrating) .ct-top,
+  html[data-view="mobile"] .class-timer-bar:not(.inactive):not(.celebrating) .ct-bottom{display:none;}
+  html[data-view="mobile"] .class-timer-bar:not(.inactive):not(.celebrating) .ct-m-text{
+    display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto;text-align:left;order:0;
+  }
+  html[data-view="mobile"] .class-timer-bar .ct-m-top{font-size:9px;opacity:0.9;}
+  html[data-view="mobile"] .class-timer-bar .ct-m-bottom{
+    font-size:14px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  html[data-view="mobile"] .class-timer-bar:not(.inactive):not(.celebrating) .ct-time{
+    order:1;flex:0 0 auto;font-size:26px;text-align:right;white-space:nowrap;
+  }
   html[data-view="mobile"] nav.tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;margin-bottom:18px;}
   html[data-view="mobile"] nav.tabs button{margin-right:16px;font-size:13px;white-space:nowrap;}
   html[data-view="mobile"] .schedule-wrap{padding:10px;border-radius:8px;}
@@ -615,13 +686,716 @@
   .notification-toast .nt-close:hover{color:var(--danger);}
 
   /* Personal preference: use Manrope for the sign-in heading. */
-  #auth-overlay h2 { font-family: "Manrope", sans-serif; }
+  #auth-overlay h2 { font-family: var(--font-display); }
+
+  .theme-circle{
+    position:absolute;top:12px;right:0;z-index:50;
+    width:34px;height:34px;padding:0;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--paper-card);color:var(--ink);
+    border:1px solid var(--line);box-shadow:var(--card-shadow);cursor:pointer;
+  }
+  .theme-circle:hover{border-color:var(--ink-soft);background:var(--hover-tint);}
+  .theme-circle svg{display:block;}
+  .notification-container{top:60px !important;}
+
+  /* Mobile layout: keep the theme circle (and toasts) inside the phone frame */
+  html[data-view="mobile"] .theme-circle{
+    top:18px;right:14px;width:32px;height:32px;
+  }
+  html[data-view="mobile"] #header-title-block{padding-right:44px;width:100%;box-sizing:border-box;}
+  html[data-view="mobile"] .notification-container{
+    top:78px !important;right:calc(max(0px, (100vw - 410px) / 2) + 14px);
+    max-width:calc(100vw - 28px);
+  }
+  html[data-view="mobile"] .notification-toast{width:min(300px, calc(100vw - 28px));}
+
+  /* Sticky header with dropdown menu */
+  header.top{position:sticky;top:0;z-index:40;background:var(--paper);padding-top:12px;}
+  #header-actions-row{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+  #header-quick-links{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
+  .header-menu{position:relative;width:100%;min-width:220px;}
+  .header-menu-bar{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-family:var(--font-accent);font-size:12px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;
+    background:var(--paper-card);color:var(--ink);border:1px solid var(--line);border-radius:6px;
+    padding:8px 12px;cursor:pointer;
+  }
+  .header-menu-bar:hover{border-color:var(--ink-soft);}
+  .hm-chevron{transition:transform .2s ease;flex-shrink:0;}
+  .header-menu.open .hm-chevron{transform:rotate(180deg);}
+  .header-menu-panel{
+    position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:45;
+    display:flex;flex-direction:column;align-items:stretch;gap:12px;
+    background:var(--paper-card);border:1px solid var(--line);border-radius:6px;
+    padding:12px;box-shadow:var(--card-shadow);
+    opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-4px);
+    transition:opacity .18s ease, transform .18s ease, visibility .18s ease;
+  }
+  .header-menu.open .header-menu-panel{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);}
+  .header-menu-panel .class-timer-bar{width:100%;max-width:none;min-width:0;}
+  header.top .summary{align-self:flex-end;}
+
+  html[data-view="mobile"] header.top{
+    margin:-18px -14px 18px;padding:18px 14px 12px;
+    background:var(--paper-card);border-radius:26px 26px 0 0;
+  }
+  html[data-view="mobile"] #header-actions-row{width:100%;align-items:stretch;}
+  html[data-view="mobile"] header.top .summary{align-self:flex-start;}
+
+  .section-switch{
+    position:relative;display:grid;grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line);border-radius:20px;padding:2px;
+    background:var(--paper);
+  }
+  .section-switch .ss-thumb{
+    position:absolute;top:2px;bottom:2px;left:2px;
+    width:calc((100% - 4px) / 4);border-radius:18px;background:var(--brass);
+    transform:translateX(calc(var(--idx) * 100%));
+    transition:transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  .section-switch .ss-opt{
+    position:relative;z-index:1;background:none;border:none;border-radius:18px;
+    font-family:var(--font-accent);font-size:10px;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;
+    color:var(--ink-soft);padding:8px 2px;cursor:pointer;white-space:nowrap;line-height:1;
+    transition:color .2s ease;
+  }
+  .section-switch .ss-opt.active{color:#fff;}
+  .section-switch .ss-opt:focus-visible{outline:2px solid var(--brass);outline-offset:1px;}
+  @media(max-width:400px){ .section-switch .ss-opt{font-size:9px;letter-spacing:0;} }
+  html[data-view="mobile"] .section-switch .ss-opt{font-size:9px;letter-spacing:0;}
+  .hm-current{font-weight:500;color:var(--ink-soft);text-transform:none;letter-spacing:0;font-size:12.5px;}
+
+  .todo-title{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+  .todo-head, html[data-view="mobile"] .todo-head{flex-direction:row;justify-content:center;align-items:center;text-align:center;margin-bottom:22px;}
+  .todo-head .todo-title{width:auto;justify-content:center;margin:0 auto;padding:0 10px 8px;border-bottom:3px solid currentColor;border-radius:2px;}
+  .todo-title span{position:relative;top:3px;line-height:1;font-weight:800;-webkit-text-stroke:0.7px currentColor;}
+  .todo-title svg{flex-shrink:0;}
+
+  /* ---- To-Do cards ---- */
+  .tcard{
+    display:flex;align-items:center;gap:16px;position:relative;
+    background:var(--input-bg);border:1.5px solid var(--line);
+    border-color:color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    border-radius:18px;padding:14px 16px;margin-bottom:14px;cursor:pointer;
+    transition:max-height 0.34s ease, margin 0.34s ease, padding 0.34s ease, opacity 0.3s ease, border-width 0.34s ease, border-color .18s ease, background-color .18s ease;
+  }
+  .tcard:hover{border-color:var(--ink-soft);}
+  .tcard:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+  .tcard.row-collapsing{opacity:0;}
+  .tcard.overdue{border-color:var(--danger);}
+  .tcard.done .tc-title{text-decoration:line-through;color:var(--ink-soft);}
+  .tcard.done .tc-pill{opacity:0.6;}
+  .tc-check{
+    -webkit-appearance:none;appearance:none;flex-shrink:0;position:relative;
+    width:44px;height:44px;margin:0;cursor:pointer;
+    border:4.5px solid var(--ink);border-radius:12px;background:transparent;
+  }
+  .tc-check:checked{background:var(--ink);}
+  .tc-check:checked::after{
+    content:"";position:absolute;left:31%;top:8%;width:25%;height:50%;
+    border:solid var(--input-bg);border-width:0 4px 4px 0;transform:rotate(45deg);
+  }
+  .tc-main{flex:1;min-width:0;}
+  .tc-title{font-size:21px;font-weight:500;line-height:1.2;overflow-wrap:anywhere;}
+  .tc-pills{display:flex;gap:8px;margin-top:6px;}
+  .tc-pill{
+    flex:1 1 0;min-width:0;display:block;text-align:center;border:none;
+    font-family:var(--font-body);font-size:13px;font-weight:500;letter-spacing:0.02em;line-height:1.35;
+    text-transform:uppercase;padding:3px 10px;border-radius:4px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .tc-pills.single .tc-pill{flex:0 1 auto;min-width:55%;max-width:100%;}
+  .tc-pill-btn{cursor:pointer;}
+  .tc-pills:not(.single) .tc-pill{flex:0 1 auto;}
+  .tc-pills .tc-pill.tc-pill-btn{flex:0 0 auto;padding-left:14px;padding-right:14px;}
+  .tc-pill-btn:hover{filter:brightness(1.12);}
+  .tc-date{
+    flex-shrink:0;align-self:stretch;margin:2px 0;min-width:84px;padding-left:14px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border-left:1.5px solid color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    font-family:'Barlow Condensed',var(--font-accent),sans-serif;text-transform:uppercase;
+  }
+  .tc-due{font-size:15px;font-weight:600;letter-spacing:0.02em;line-height:1.1;white-space:nowrap;}
+  .tc-md{font-size:44px;font-weight:600;line-height:1;margin-top:2px;}
+  .tcard.overdue .tc-date{color:var(--danger);}
+  .tcard .check-anim-box, .tcard .check-burst{width:100%;height:100%;left:0;top:0;margin:0;border-radius:12px;}
+  .tcard .check-anim-box svg{width:62%;height:62%;}
+  .folder-child-item{margin-left:44px;}
+  .ci-row.stack{flex-direction:column;gap:4px;}
+  .ci-row.stack .ci-value{text-align:left;white-space:pre-wrap;}
+  @media(max-width:600px){
+    .tcard{gap:12px;padding:12px;border-radius:16px;}
+    .tc-check{width:36px;height:36px;border-width:4px;border-radius:10px;}
+    .tc-title{font-size:17px;}
+    .tc-pill{font-size:11px;padding:3px 6px;}
+    .tc-date{min-width:68px;padding-left:10px;}
+    .tc-due{font-size:12.5px;}
+    .tc-md{font-size:34px;}
+    .folder-child-item{margin-left:26px;}
+  }
+  html[data-view="mobile"] .tcard{gap:12px;padding:12px;border-radius:16px;}
+  html[data-view="mobile"] .tc-check{width:36px;height:36px;border-width:4px;border-radius:10px;}
+  html[data-view="mobile"] .tc-title{font-size:17px;}
+  html[data-view="mobile"] .tc-pill{font-size:11px;padding:3px 6px;}
+  html[data-view="mobile"] .tc-date{min-width:68px;padding-left:10px;}
+  html[data-view="mobile"] .tc-due{font-size:12.5px;}
+  html[data-view="mobile"] .tc-md{font-size:34px;}
+  /* Mobile: To-Do card text, including the due date block, follows the "Body text & buttons" font */
+  html[data-view="mobile"] .tcard .tc-title,
+  html[data-view="mobile"] .tcard .tc-pill,
+  html[data-view="mobile"] .tcard .tc-pill-btn,
+  html[data-view="mobile"] .tcard .tc-date{font-family:var(--font-body);}
+  /* Mobile: To-Do card checkbox matches the Assignments checkbox (native, class-colored), just upscaled */
+  html[data-view="mobile"] .tc-check{
+    -webkit-appearance:checkbox;appearance:auto;
+    width:32px;height:32px;margin:0;border:none;border-radius:0;background:none;
+    accent-color:var(--tc-fill);
+  }
+  html[data-view="mobile"] .tc-check:checked{background:none;}
+  html[data-view="mobile"] .tc-check:checked::after{content:none;display:none;}
+  html[data-view="mobile"] .tcard .check-anim-box{border-radius:6px;}
+  html[data-view="mobile"] .tcard .check-burst{border-radius:50%;}
+  /* Mobile To-Do List: more compact cards */
+  html[data-view="mobile"] .tcard{gap:10px;padding:8px 10px;border-radius:12px;margin-bottom:8px;}
+  html[data-view="mobile"] .tc-check{width:24px;height:24px;}
+  html[data-view="mobile"] .tc-title{font-size:14.5px;line-height:1.2;}
+  html[data-view="mobile"] .tc-pills{gap:6px;margin-top:4px;}
+  html[data-view="mobile"] .tc-pill{font-size:9.5px;padding:2px 5px;}
+  html[data-view="mobile"] .tc-pills .tc-pill.tc-pill-btn{padding-left:9px;padding-right:9px;}
+  html[data-view="mobile"] .tc-date{min-width:54px;padding-left:8px;margin:0;}
+  /* Body font is wider than the old condensed face, so the date block is sized down slightly to keep the card layout */
+  html[data-view="mobile"] .tc-due{font-size:9px;letter-spacing:0;font-weight:600;text-transform:none;}
+  html[data-view="mobile"] .tc-md{font-size:21px;font-weight:700;margin-top:2px;}
+  html[data-view="mobile"] .folder-child-item{margin-left:20px;}
+  /* Mobile Calendar: both toggles share one line, "This week" heading removed */
+  html[data-view="mobile"] #schedule-heading{display:none;}
+  html[data-view="mobile"] #panel-schedule.active{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;}
+  html[data-view="mobile"] #panel-schedule > *{flex:0 0 100%;min-width:0;}
+  html[data-view="mobile"] #panel-schedule > .section-head:not(.page-head),
+  html[data-view="mobile"] #panel-schedule .section-head-actions{display:contents;}
+  html[data-view="mobile"] #panel-schedule .view-toggle{width:auto;margin-bottom:14px;flex:0 0 auto;}
+  html[data-view="mobile"] #panel-schedule > .view-toggle{flex:1 1 0;min-width:0;}
+  html[data-view="mobile"] #panel-schedule .view-toggle-btn{flex:1 1 auto;font-size:11px;padding:7px 5px;white-space:nowrap;}
+  html[data-view="mobile"] #panel-schedule #week-nav,
+  html[data-view="mobile"] #panel-schedule #month-nav{flex:0 0 100%;justify-content:center;margin-bottom:14px;}
+  html[data-view="mobile"] #panel-schedule #manage-breaks-btn,
+  html[data-view="mobile"] #panel-schedule #add-class-btn{flex:1 1 0;margin-bottom:14px;}
+  /* Mobile Calendar: "School breaks" moves into the heading as "+ Break" */
+  html[data-view="mobile"] #panel-schedule #manage-breaks-btn{display:none;}
+  /* The actions wrapper has an inline display:flex, so it needs !important to flatten into the row */
+  html[data-view="mobile"] #panel-schedule .section-head-actions{display:contents !important;}
+  /* "Assignments & Tasks" reads "Due dates" on mobile only */
+  .lbl-short{display:none;}
+  html[data-view="mobile"] .lbl-full{display:none;}
+  html[data-view="mobile"] .lbl-short{display:inline;}
+  /* Calendar toggles styled like the menu's sliding pill switch (mobile only) */
+  html[data-view="mobile"] #panel-schedule .view-toggle{
+    position:relative;display:grid;grid-template-columns:1fr 1fr;
+    border:1px solid var(--line);border-radius:20px;padding:2px;background:var(--paper);overflow:hidden;
+  }
+  html[data-view="mobile"] #panel-schedule .view-toggle::before{
+    content:"";position:absolute;top:2px;bottom:2px;left:2px;
+    width:calc((100% - 4px) / 2);border-radius:18px;background:var(--brass);
+    transform:translateX(0);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  html[data-view="mobile"] #panel-schedule .view-toggle:has(.view-toggle-btn:nth-child(2).active)::before{transform:translateX(100%);}
+  html[data-view="mobile"] #panel-schedule .view-toggle-btn{
+    position:relative;z-index:1;background:none;border:none;border-radius:18px;
+    font-family:var(--font-accent);font-size:9px;font-weight:700;letter-spacing:0;text-transform:uppercase;
+    color:var(--ink-soft);padding:8px 10px;line-height:1;white-space:nowrap;text-align:center;
+    transition:color .2s ease;
+  }
+  html[data-view="mobile"] #panel-schedule .view-toggle-btn.active{background:none;color:#fff;}
+  /* Desktop Calendar: same sliding pill switch as mobile; mode toggle sits in the heading row between "This week" and the controls */
+  html:not([data-view="mobile"]) #panel-schedule .view-toggle{
+    position:relative;display:grid;grid-template-columns:1fr 1fr;width:fit-content;
+    border:1px solid var(--line);border-radius:20px;padding:2px;background:var(--paper);overflow:hidden;
+  }
+  html:not([data-view="mobile"]) #panel-schedule .view-toggle::before{
+    content:"";position:absolute;top:2px;bottom:2px;left:2px;
+    width:calc((100% - 4px) / 2);border-radius:18px;background:var(--brass);
+    transform:translateX(0);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  html:not([data-view="mobile"]) #panel-schedule .view-toggle:has(.view-toggle-btn:nth-child(2).active)::before{transform:translateX(100%);}
+  html:not([data-view="mobile"]) #panel-schedule .view-toggle-btn{
+    position:relative;z-index:1;background:none;border:none;border-radius:18px;
+    font-family:var(--font-accent);font-size:11px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;
+    color:var(--ink-soft);padding:9px 18px;line-height:1;white-space:nowrap;text-align:center;
+    transition:color .2s ease;
+  }
+  html:not([data-view="mobile"]) #panel-schedule .view-toggle-btn.active{background:none;color:#fff;}
+  html:not([data-view="mobile"]) #panel-schedule.active{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;column-gap:0;align-items:center;}
+  html:not([data-view="mobile"]) #panel-schedule > .page-head,
+  html:not([data-view="mobile"]) #panel-schedule > :not(.section-head):not(.view-toggle){grid-column:1 / -1;}
+  html:not([data-view="mobile"]) #panel-schedule > .section-head:not(.page-head){display:contents;}
+  html:not([data-view="mobile"]) #panel-schedule > .page-head{grid-row:1;}
+  html:not([data-view="mobile"]) #panel-schedule > #schedule-wrap{grid-row:3;}
+  html:not([data-view="mobile"]) #panel-schedule > .class-list-section{grid-row:4;}
+  /* Desktop Calendar: show the same CALENDAR icon + heading as mobile (no logo, no + Break) */
+  html:not([data-view="mobile"]) #panel-schedule > .page-head{display:flex;justify-content:center;align-items:center;text-align:center;margin-bottom:22px;}
+  html:not([data-view="mobile"]) #panel-schedule > .page-head .todo-title{display:flex;font-size:26px;letter-spacing:0.05em;gap:12px;margin:0;padding:0 18px 9px;border-bottom-width:3px;justify-content:center;}
+  html:not([data-view="mobile"]) #panel-schedule > .page-head .todo-title svg{width:48px;height:48px;margin-left:-4px;}
+  html:not([data-view="mobile"]) #panel-schedule > .page-head .todo-title span{top:3px;margin-right:-0.05em;}
+  /* Desktop week views: today's day header pill + column tint, and the NOW bar */
+  html:not([data-view="mobile"]) .week-scroll-inner .headers-row,
+  html:not([data-view="mobile"]) .due-stack-inner .headers-row{position:relative;z-index:0;}
+  html:not([data-view="mobile"]) .week-scroll-inner .headers-row{padding-top:10px;}
+  html:not([data-view="mobile"]) .week-scroll-inner .headers-row .hour-col{margin-top:-10px;}
+  html:not([data-view="mobile"]) .week-scroll-inner .day-header.today,
+  html:not([data-view="mobile"]) .due-stack-inner .day-header.today{position:relative;color:#fff;border-bottom-color:transparent;}
+  html:not([data-view="mobile"]) .week-scroll-inner .day-header.today::before,
+  html:not([data-view="mobile"]) .due-stack-inner .day-header.today::before{
+    content:"";position:absolute;left:3px;right:3px;top:-4px;bottom:2px;background:#33509C;border-radius:12px;z-index:-1;
+  }
+  html:not([data-view="mobile"]) .week-scroll-inner .day-col.today{background:rgba(51,80,156,0.14);}
+  html:not([data-view="mobile"]) .week-scroll-inner .day-col.today .hline{border-top-color:var(--line);}
+  html:not([data-view="mobile"]) .week-scroll-inner .now-line{position:absolute;left:0;right:0;height:2px;margin-top:-1px;background:#33509C;z-index:4;pointer-events:none;}
+  html:not([data-view="mobile"]) .week-scroll-inner .now-line .now-dot{position:absolute;top:50%;width:8px;height:8px;border-radius:50%;background:#33509C;transform:translate(-1px,-50%);}
+  html:not([data-view="mobile"]) .week-scroll-inner .now-pill{
+    position:absolute;right:4px;transform:translateY(-50%);z-index:3;pointer-events:none;
+    background:#33509C;color:#fff;font-family:var(--font-accent);font-size:9px;font-weight:800;letter-spacing:0.04em;
+    line-height:1;padding:4px 5px;border-radius:3px;
+  }
+  /* Desktop Due dates week: stacked cards per day (no time grid), same as mobile; 7 days at the width of 5, scrolls sideways */
+  html:not([data-view="mobile"]) .due-stack-inner{width:140%;}
+  html:not([data-view="mobile"]) .due-stack-col{padding:8px;min-height:260px;}
+  html:not([data-view="mobile"]) .due-stack-col.today{background:rgba(51,80,156,0.14);}
+  html:not([data-view="mobile"]) .activity-block.due-stack{position:relative;left:auto;right:auto;top:auto;height:auto;display:block;width:100%;margin:0 0 6px;min-height:44px;text-align:left;}
+  html:not([data-view="mobile"]) .due-stack-col .allday-chip{margin:0 0 6px;padding:5px 7px;font-size:11px;white-space:normal;}
+  html:not([data-view="mobile"]) .due-stack-col .ccls{display:block;font-size:10px;font-weight:500;opacity:0.85;}
+  /* Desktop week views: 7 days at the width of 5; the calendar scrolls sideways to reach Sat/Sun, hour labels stay pinned */
+  html:not([data-view="mobile"]) #schedule-wrap:has(> .week-scroll-inner){padding-left:0;overflow-x:auto;scrollbar-width:thin;}
+  html:not([data-view="mobile"]) .week-scroll-inner{width:calc((100% - 76px) * 1.4 + 76px);}
+  html:not([data-view="mobile"]) .week-scroll-inner .hour-col,
+  html:not([data-view="mobile"]) .week-scroll-inner .headers-row .hour-col{width:76px;position:sticky;left:0;z-index:5;background:var(--paper-card);}
+  /* Header sits at the left, spanning both control rows; controls stack to its right */
+  html:not([data-view="mobile"]) #panel-schedule > .page-head{grid-column:1;grid-row:1 / span 2;justify-content:flex-start;justify-self:start;align-self:center;margin-bottom:16px;margin-left:0;margin-right:32px;position:relative;top:-10px;}
+  /* Desktop Assignments: same top layout as Calendar (title + icon left, controls in the middle, Coursework logo right) */
+  html:not([data-view="mobile"]) #panel-upcoming.active{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:0;align-items:center;}
+  html:not([data-view="mobile"]) #panel-upcoming > .page-head{display:contents;}
+  html:not([data-view="mobile"]) #panel-upcoming > .page-head > .todo-title{
+    display:flex;grid-column:1;grid-row:1;justify-self:start;align-self:center;justify-content:center;
+    font-size:26px;letter-spacing:0.05em;gap:12px;margin:0 32px 16px 0;padding:0 18px 9px;border-bottom-width:3px;position:relative;top:-5px;
+  }
+  html:not([data-view="mobile"]) #panel-upcoming > .page-head > .todo-title svg{width:44px;height:44px;margin-left:-3px;}
+  html:not([data-view="mobile"]) #panel-upcoming > .page-head > .todo-title span{top:3px;margin-right:-0.05em;}
+  html:not([data-view="mobile"]) #panel-upcoming > .page-head > .brand-logo-wrap{display:block;grid-column:3;grid-row:1;justify-self:end;align-self:center;margin:0 35px 16px 20px;color:var(--ink);line-height:0;}
+  html:not([data-view="mobile"]) #panel-upcoming > .page-head .brand-logo{width:150px;height:auto;display:block;}
+  html:not([data-view="mobile"]) #panel-upcoming > .section-head:not(.page-head){display:contents;}
+  html:not([data-view="mobile"]) #panel-upcoming .upcoming-heading{display:none;}
+  html:not([data-view="mobile"]) #panel-upcoming .upcoming-actions{grid-column:2;grid-row:1;justify-self:stretch;justify-content:flex-start;margin-bottom:16px;}
+  html:not([data-view="mobile"]) #panel-upcoming > #upcoming-list{grid-column:1 / -1;grid-row:2;}
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle{
+    --n:2;position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);width:fit-content;
+    border:1px solid var(--line);border-radius:20px;padding:2px;background:var(--paper);overflow:hidden;
+  }
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle:has(> :nth-child(3)){--n:3;}
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle::before{
+    content:"";position:absolute;top:2px;bottom:2px;left:2px;
+    width:calc((100% - 4px) / var(--n));border-radius:18px;background:var(--brass);
+    transform:translateX(0);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle:has(> :nth-child(2).active)::before{transform:translateX(100%);}
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle:has(> :nth-child(3).active)::before{transform:translateX(200%);}
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle-btn{
+    position:relative;z-index:1;background:none;border:none;border-radius:18px;
+    font-family:var(--font-accent);font-size:11px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;
+    color:var(--ink-soft);padding:9px 18px;line-height:1;white-space:nowrap;text-align:center;transition:color .2s ease;
+  }
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle-btn.active{background:none;color:#fff;}
+  .vt-label{display:none;}
+  /* Desktop Assignments filter slider: non-selectable "SHOW" label built into the left end of the pill */
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle:has(> .vt-label){--lw:70px;grid-template-columns:var(--lw) repeat(var(--n),1fr);}
+  html:not([data-view="mobile"]) #panel-upcoming .view-toggle:has(> .vt-label)::before{left:calc(2px + var(--lw));width:calc((100% - 4px - var(--lw)) / var(--n));}
+  html:not([data-view="mobile"]) #panel-upcoming .vt-label{
+    display:flex;align-items:center;justify-content:center;grid-column:1;grid-row:1;position:relative;z-index:1;
+    font-family:var(--font-accent);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;line-height:1;
+    color:var(--ink-soft);opacity:0.75;padding:9px 0;margin:3px 0;border-right:1px solid var(--line);
+    pointer-events:none;user-select:none;-webkit-user-select:none;cursor:default;
+  }
+  /* Desktop To-Do and Clubs: same top layout as Calendar/Assignments (title + icon left, controls in the middle, Coursework logo right) */
+  html:not([data-view="mobile"]) #panel-todolist.active,
+  html:not([data-view="mobile"]) #panel-activities.active{display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:0;align-items:center;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head,
+  html:not([data-view="mobile"]) #panel-activities > .page-head{display:contents;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head > .todo-title,
+  html:not([data-view="mobile"]) #panel-activities > .page-head > .todo-title{
+    display:flex;grid-column:1;grid-row:1;justify-self:start;align-self:center;justify-content:center;
+    font-size:26px;letter-spacing:0.05em;gap:12px;margin:0 32px 16px 0;padding:0 18px 9px;border-bottom-width:3px;position:relative;top:-5px;
+  }
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head > .todo-title svg,
+  html:not([data-view="mobile"]) #panel-activities > .page-head > .todo-title svg{width:44px;height:44px;margin-left:-3px;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head > .todo-title span,
+  html:not([data-view="mobile"]) #panel-activities > .page-head > .todo-title span{top:3px;margin-right:-0.05em;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head > .todo-title-classic{display:none;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head > .brand-logo-wrap,
+  html:not([data-view="mobile"]) #panel-activities > .page-head > .brand-logo-wrap{display:block;grid-column:3;grid-row:1;justify-self:end;align-self:center;margin:0 35px 16px 20px;color:var(--ink);line-height:0;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head .brand-logo,
+  html:not([data-view="mobile"]) #panel-activities > .page-head .brand-logo{width:150px;height:auto;display:block;}
+  html:not([data-view="mobile"]) #panel-todolist > #todolist-list,
+  html:not([data-view="mobile"]) #panel-activities > #activities-list{grid-column:1 / -1;grid-row:2;}
+  html:not([data-view="mobile"]) #panel-activities > .section-head:not(.page-head){display:contents;}
+  html:not([data-view="mobile"]) #activities-heading{display:none;}
+  html:not([data-view="mobile"]) #panel-activities > .section-head:not(.page-head) > div{grid-column:2;grid-row:1;justify-self:stretch;justify-content:flex-start;margin-bottom:16px;}
+  html:not([data-view="mobile"]) #panel-activities .view-toggle{
+    position:relative;display:grid;grid-template-columns:1fr 1fr;width:fit-content;
+    border:1px solid var(--line);border-radius:20px;padding:2px;background:var(--paper);overflow:hidden;
+  }
+  html:not([data-view="mobile"]) #panel-activities .view-toggle::before{
+    content:"";position:absolute;top:2px;bottom:2px;left:2px;
+    width:calc((100% - 4px) / 2);border-radius:18px;background:var(--brass);
+    transform:translateX(0);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  html:not([data-view="mobile"]) #panel-activities .view-toggle:has(> :nth-child(2).active)::before{transform:translateX(100%);}
+  html:not([data-view="mobile"]) #panel-activities .view-toggle-btn{
+    position:relative;z-index:1;background:none;border:none;border-radius:18px;
+    font-family:var(--font-accent);font-size:11px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;
+    color:var(--ink-soft);padding:9px 18px;line-height:1;white-space:nowrap;text-align:center;transition:color .2s ease;
+  }
+  html:not([data-view="mobile"]) #panel-activities .view-toggle-btn.active{background:none;color:#fff;}
+  /* To-Do subtext under the welcome heading (desktop) */
+  .todo-sub{display:none;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-sub{display:block;grid-column:1 / -1;grid-row:2;justify-self:center;margin:-2px 0 10px;font-size:15px;line-height:1.4;color:var(--ink-soft);text-align:center;}
+  html:not([data-view="mobile"]) #panel-todolist > #todolist-list{grid-row:3;}
+  .todo-sub.intro-pending{opacity:0;}
+  .todo-sub.intro-play{animation:tt-rise .7s ease 3.5s both;}
+  .todo-title.intro-play .cw{animation:tt-underline .55s cubic-bezier(.4,0,.2,1) 2.65s both;}
+  @keyframes tt-underline{from{background-size:0% 3px;}to{background-size:100% 3px;}}
+  @keyframes tt-rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  /* To-Do header intro: the checkbox and check draw themselves, then the heading is written left to right */
+  .todo-title.intro-pending svg path,
+  .todo-title.intro-pending .ttl-todo,
+  .todo-title.intro-pending .ttl-welcome{opacity:0;}
+  .todo-title.intro-play svg path{stroke-dasharray:1 2;stroke-dashoffset:1;animation:tt-draw .65s cubic-bezier(.45,.05,.25,1) both;}
+  .todo-title.intro-play svg path:nth-of-type(1){animation-delay:.2s;}
+  .todo-title.intro-play svg path:nth-of-type(2){animation-delay:.75s;animation-duration:.55s;}
+  .todo-title.intro-play .ttl-todo,
+  .todo-title.intro-play .ttl-welcome{animation:tt-write 1.5s cubic-bezier(.4,0,.2,1) 1.15s both;}
+  @keyframes tt-draw{from{stroke-dashoffset:1;}to{stroke-dashoffset:0;}}
+  @keyframes tt-write{from{clip-path:inset(-60% 100% -80% -4%);}to{clip-path:inset(-60% -6% -80% -4%);}}
+  /* To-Do header on desktop reads "Welcome to Coursework" (Coursework in brand blue, underlined); mobile keeps TODO LIST */
+  .ttl-welcome{display:none;}
+  html:not([data-view="mobile"]) #panel-todolist .ttl-todo{display:none;}
+  html:not([data-view="mobile"]) #panel-todolist .ttl-welcome{display:inline;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head > .todo-title{border-bottom:none;padding-bottom:0;margin-bottom:6px;}
+  html:not([data-view="mobile"]) #panel-todolist .ttl-welcome .cw{
+    color:#33509C;-webkit-text-stroke-color:#33509C;font-weight:inherit;
+    padding-bottom:2px;background:linear-gradient(#33509C,#33509C) no-repeat left bottom / 100% 3px;
+  }
+  /* To-Do desktop: no logo, title + icon centered */
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head > .brand-logo-wrap{display:none;}
+  html:not([data-view="mobile"]) #panel-todolist > .todo-head > .todo-title{grid-column:1 / -1;justify-self:center;margin-right:0;}
+  /* Desktop: header contents join the grid directly so the Coursework logo can sit at the far right */
+  html:not([data-view="mobile"]) #panel-schedule > .page-head{display:contents;}
+  html:not([data-view="mobile"]) #panel-schedule > .page-head > .todo-title{grid-column:1;grid-row:1 / span 2;justify-self:start;align-self:center;margin:0 32px 16px 0;position:relative;top:-5px;}
+  html:not([data-view="mobile"]) #panel-schedule > .page-head > .brand-logo-wrap{display:block;grid-column:4;grid-row:1 / span 2;justify-self:end;align-self:center;margin:0 35px 16px 20px;color:var(--ink);line-height:0;}
+  html:not([data-view="mobile"]) #panel-schedule > .page-head .brand-logo{width:150px;height:auto;display:block;}
+  html:not([data-view="mobile"]) #panel-schedule > .view-toggle{grid-column:2;grid-row:1;justify-self:start;margin-bottom:10px;}
+  html:not([data-view="mobile"]) #panel-schedule > #manage-breaks-btn{grid-column:3;grid-row:1;justify-self:start;margin:0 0 10px 12px;}
+  html:not([data-view="mobile"]) #schedule-heading{display:none;}
+  html:not([data-view="mobile"]) #panel-schedule .section-head-actions{grid-column:2 / 4;grid-row:2;justify-self:stretch;justify-content:flex-start;margin-bottom:16px;}
+  /* Mobile Assignments: filter + sort toggles share one line, styled as the same sliding pill switch as the Calendar */
+  .upcoming-toggles{display:contents;}
+  html[data-view="mobile"] #panel-upcoming .upcoming-actions{width:100%;flex-wrap:wrap;gap:8px;justify-content:flex-start;}
+  html[data-view="mobile"] #panel-upcoming .upcoming-toggles{display:flex;gap:8px;width:100%;flex:0 0 100%;}
+  html[data-view="mobile"] #panel-upcoming .upcoming-toggles .view-toggle{width:auto;min-width:0;margin:0;flex:2 1 0;}
+  html[data-view="mobile"] #panel-upcoming .upcoming-toggles .view-toggle:has(> :nth-child(3)){flex:3.4 1 0;}
+  html[data-view="mobile"] #panel-upcoming .view-toggle{
+    --n:2;position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));
+    border:1px solid var(--line);border-radius:20px;padding:2px;background:var(--paper);overflow:hidden;
+  }
+  html[data-view="mobile"] #panel-upcoming .view-toggle:has(> :nth-child(3)){--n:3;}
+  html[data-view="mobile"] #panel-upcoming .view-toggle::before{
+    content:"";position:absolute;top:2px;bottom:2px;left:2px;
+    width:calc((100% - 4px) / var(--n));border-radius:18px;background:var(--brass);
+    transform:translateX(0);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  html[data-view="mobile"] #panel-upcoming .view-toggle:has(> :nth-child(2).active)::before{transform:translateX(100%);}
+  html[data-view="mobile"] #panel-upcoming .view-toggle:has(> :nth-child(3).active)::before{transform:translateX(200%);}
+  html[data-view="mobile"] #panel-upcoming .view-toggle-btn{
+    position:relative;z-index:1;background:none;border:none;border-radius:18px;
+    font-family:var(--font-accent);font-size:8px;font-weight:700;letter-spacing:0;text-transform:uppercase;
+    color:var(--ink-soft);padding:8px 4px;line-height:1;white-space:nowrap;text-align:center;flex:none;
+    overflow:hidden;text-overflow:ellipsis;transition:color .2s ease;
+  }
+  html[data-view="mobile"] #panel-upcoming .view-toggle-btn.active{background:none;color:#fff;}
+  /* Mobile Clubs: Clubs / Club Task List toggle uses the same sliding pill switch */
+  html[data-view="mobile"] #panel-activities .view-toggle{
+    position:relative;display:grid;grid-template-columns:1fr 1fr;width:auto;flex:0 0 auto;min-width:0;
+    border:1px solid var(--line);border-radius:20px;padding:2px;background:var(--paper);overflow:hidden;
+  }
+  html[data-view="mobile"] #panel-activities .view-toggle::before{
+    content:"";position:absolute;top:2px;bottom:2px;left:2px;
+    width:calc((100% - 4px) / 2);border-radius:18px;background:var(--brass);
+    transform:translateX(0);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  html[data-view="mobile"] #panel-activities .view-toggle:has(> :nth-child(2).active)::before{transform:translateX(100%);}
+  html[data-view="mobile"] #panel-activities .view-toggle-btn{
+    position:relative;z-index:1;background:none;border:none;border-radius:18px;
+    font-family:var(--font-accent);font-size:9px;font-weight:700;letter-spacing:0;text-transform:uppercase;
+    color:var(--ink-soft);padding:8px 10px;line-height:1;white-space:nowrap;text-align:center;flex:none;
+    transition:color .2s ease;
+  }
+  html[data-view="mobile"] #panel-activities .view-toggle-btn.active{background:none;color:#fff;}
+  /* Mobile Clubs: heading and toggle sit level on one line */
+  html[data-view="mobile"] #panel-activities > .section-head:not(.page-head){flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:8px;}
+  html[data-view="mobile"] #panel-activities #activities-heading{font-size:clamp(13px, calc((100vw - 250px) / 10.6), 17px) !important;flex:1 1 auto;min-width:0;line-height:1.2;white-space:nowrap;}
+  html[data-view="mobile"] #panel-activities > .section-head:not(.page-head) > div{flex:0 0 auto;flex-wrap:nowrap !important;}
+  html[data-view="mobile"] #panel-activities .view-toggle-btn{padding:8px 6px;}
+  /* Mobile: "Add class" moves below the class list */
+  html[data-view="mobile"] #panel-schedule #schedule-wrap{order:1;}
+  html[data-view="mobile"] #panel-schedule .class-list-section{order:2;}
+  html[data-view="mobile"] #panel-schedule #add-class-btn{order:3;flex:0 0 100%;margin:14px 0 0;}
+  /* Desktop: "Add class" lives below the class list (same as mobile); the bottom copy is desktop-only */
+  #add-class-btn-bottom{display:none;}
+  html:not([data-view="mobile"]) #add-class-btn{display:none !important;}
+  html:not([data-view="mobile"]) #add-class-btn-bottom{display:block;width:100%;margin-top:14px;}
+  html:not([data-view="mobile"]) #panel-schedule[data-cal-mode="todos"] #add-class-btn-bottom{display:none;}
+  /* Mobile, Due dates mode: shorter week calendar that scrolls inside itself */
+  /* Mobile, Due dates week view: stacked cards per day instead of a time grid */
+  /* 7 days at the same width as 5 (7/5 = 140%); the wrapper scrolls sideways by touch */
+  html[data-view="mobile"] .due-week-inner{width:140%;}
+  /* Classes & Clubs week: keep the hour labels pinned while scrolling sideways to Sat/Sun */
+  html[data-view="mobile"] .due-week-inner .hour-col{position:sticky;left:0;z-index:5;background:var(--paper-card);}
+  /* The sticky hour column pins to the scroller's padding edge, which left a 10px strip where class cards showed through.
+     Dropping the left padding on the week grid lets the time bar sit flush with the calendar's left edge. */
+  html[data-view="mobile"] #schedule-wrap:has(> .due-week-inner){padding-left:0;}
+  html[data-view="mobile"] #schedule-wrap{-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;}
+  /* Mobile Calendar (Classes & Clubs week): fixed-height window that scrolls vertically through the day; day headers stay pinned */
+  html[data-view="mobile"] .due-week-inner.tg-inner{width:calc((100% - 20px) * 1.75 + 30px);}
+  html[data-view="mobile"] #schedule-wrap:has(> .tg-inner){
+    height:clamp(340px, 56vh, 520px);overflow-y:auto;overflow-x:auto;padding-top:0;overscroll-behavior:contain;
+  }
+  html[data-view="mobile"] .tg-inner .headers-row{position:sticky;top:0;z-index:8;background:var(--paper-card);padding-top:10px;}
+  /* Mobile week: break banners (e.g. "Fall Break") stay pinned just under the day headers while scrolling */
+  html[data-view="mobile"] .tg-inner .break-day-banner{position:sticky;top:calc(var(--wk-hdr-h, 44px) - 10px);left:auto;right:auto;margin:0 2px;z-index:6;background-color:var(--paper-card);}
+  /* Mobile Calendar: today's column is highlighted (blue day pill + soft tint) */
+  html[data-view="mobile"] .day-header.today{position:relative;color:#fff;border-bottom-color:transparent;}
+  html[data-view="mobile"] .day-header.today::before{
+    content:"";position:absolute;left:2px;right:2px;top:-3px;bottom:1px;background:#33509C;border-radius:10px;z-index:-1;
+  }
+  html[data-view="mobile"] .day-col.today{background:rgba(51,80,156,0.14);}
+  html[data-view="mobile"] .due-stack-inner .headers-row{position:relative;z-index:0;}
+  /* Mobile Calendar: "NOW" bar across the week at the current time */
+  html[data-view="mobile"] .now-line{position:absolute;left:0;right:0;height:2px;margin-top:-1px;background:#33509C;z-index:4;pointer-events:none;}
+  html[data-view="mobile"] .now-line .now-dot{position:absolute;top:50%;width:8px;height:8px;border-radius:50%;background:#33509C;transform:translate(-1px,-50%);}
+  html[data-view="mobile"] .now-pill{
+    position:absolute;right:1px;transform:translateY(-50%);z-index:3;pointer-events:none;
+    background:#33509C;color:#fff;font-family:var(--font-accent);font-size:7px;font-weight:800;letter-spacing:0.04em;
+    line-height:1;padding:3px 3px;border-radius:3px;
+  }
+  html[data-view="mobile"] .due-stack-col{padding:3px 0;min-height:48px;}
+  html[data-view="mobile"] .activity-block.due-stack{
+    position:relative;left:auto;right:auto;display:block;width:calc(100% - 2px);
+    margin:0 1px 3px;min-height:36px;
+  }
+  html[data-view="mobile"] .due-stack-col .allday-chip{margin:0 1px 3px;}
+  html[data-view="mobile"] .due-stack-col .ccls{display:block;font-size:6px;font-weight:500;opacity:0.85;}
+  html[data-view="mobile"] .folder-child-item{margin-left:26px;}
+
+  /* ================= DESKTOP LAYOUT (restored to the earlier version) =================
+     Everything below is scoped to html:not([data-view="mobile"]) so mobile mode is untouched,
+     except the two rules that hide desktop-only elements in mobile. */
+  html[data-view="mobile"]{--font-display:'Manrope',sans-serif;--font-accent:'Merriweather',serif;}
+  nav.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--line);}
+  nav.tabs button{
+    font-family:'Inter',sans-serif;font-size:14px;font-weight:500;
+    background:none;border:none;padding:10px 4px;margin-right:24px;
+    color:var(--ink-soft);cursor:pointer;position:relative;top:1px;
+  }
+  nav.tabs button.active{color:var(--ink);border-bottom:2px solid var(--brass);}
+  nav.tabs button:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+  html[data-view="mobile"] nav.tabs{display:none;}
+  .todo-title-classic{display:none;font-size:18px;}
+  html[data-view="mobile"] .todo-title-classic{display:none;}
+
+  /* Mobile month view: fit the whole month on screen (no sideways scrolling) */
+  html[data-view="mobile"] .month-grid{min-width:0;width:100%;grid-template-columns:repeat(7,minmax(0,1fr));}
+  html[data-view="mobile"] .month-weekday-header{font-size:10px;padding:6px 0;}
+  html[data-view="mobile"] .month-cell{min-height:84px;padding:3px 2px;min-width:0;overflow:hidden;}
+  html[data-view="mobile"] .month-cell .daynum{font-size:10px;margin-bottom:2px;text-align:center;}
+  /* Desktop Month view: click a day to open its details popup (same popup as mobile) */
+  html:not([data-view="mobile"]) #schedule-wrap .month-cell:not(.empty){cursor:pointer;transition:background .15s ease;}
+  html:not([data-view="mobile"]) #schedule-wrap .month-cell:not(.empty):hover{background:var(--hover-tint);}
+  html:not([data-view="mobile"]) .day-entry{border-left:4px solid var(--line);background:var(--paper);border-radius:4px;padding:10px 12px;margin-bottom:10px;}
+  html:not([data-view="mobile"]) .day-entry .de-title{font-size:15px;font-weight:600;line-height:1.3;}
+  html:not([data-view="mobile"]) .day-entry .de-meta{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  .de-section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:14px 0 8px;}
+  .de-section-title:first-child{margin-top:2px;}
+  html:not([data-view="mobile"]) .de-empty{font-size:14px;color:var(--ink-soft);padding:6px 0 14px;}
+  /* Mobile Month view: tap a day to open its details popup */
+  html[data-view="mobile"] #schedule-wrap .month-cell:not(.empty){cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  html[data-view="mobile"] #schedule-wrap .month-cell:not(.empty):active{background:var(--hover-tint);}
+  html[data-view="mobile"] .day-entry{border-left:4px solid var(--line);background:var(--paper);border-radius:4px;padding:8px 10px;margin-bottom:10px;}
+  html[data-view="mobile"] .day-entry .de-title{font-size:14px;font-weight:600;line-height:1.3;}
+  html[data-view="mobile"] .day-entry .de-meta{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  html[data-view="mobile"] .de-empty{font-size:13px;color:var(--ink-soft);padding:6px 0 14px;}
+  html[data-view="mobile"] .month-chip{
+    font-size:6.5px;line-height:1.2;padding:1px 2px;margin-top:2px;border-radius:2px;
+    white-space:normal;word-break:break-word;overflow:hidden;
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;
+  }
+  html[data-view="mobile"] .month-chip.outline{border-width:1px;}
+  html[data-view="mobile"] .month-cell .break-banner{font-size:6.5px;line-height:1.2;padding:2px 1px;border-width:1px;word-break:break-word;}
+
+  /* Mobile week view: fit all five days on screen (no sideways scrolling) */
+  html[data-view="mobile"] .headers-row,
+  html[data-view="mobile"] .allday-row,
+  html[data-view="mobile"] .grid-scroll{min-width:0;}
+  html[data-view="mobile"] .hour-col,
+  html[data-view="mobile"] .headers-row .hour-col{width:30px;}
+  html[data-view="mobile"] .hour-label{right:3px;font-size:8px;}
+  html[data-view="mobile"] .day-col{min-width:0;}
+  html[data-view="mobile"] .day-header{font-size:10px;padding-bottom:5px;}
+  html[data-view="mobile"] .class-block,
+  html[data-view="mobile"] .activity-block{
+    left:1px;right:1px;padding:2px 3px;font-size:7px;line-height:1.2;
+    word-break:break-word;overflow-wrap:anywhere;
+  }
+  html[data-view="mobile"] .activity-block{border-width:1px;}
+  /* Mobile week grid: card text starts at the top of the card (buttons center their content by default) */
+  html[data-view="mobile"] .day-body .class-block,
+  html[data-view="mobile"] .day-body .activity-block{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;}
+  html[data-view="mobile"] .day-body .class-block > *,
+  html[data-view="mobile"] .day-body .activity-block > *{flex:none;}
+  html[data-view="mobile"] .class-block .cmeta,
+  html[data-view="mobile"] .activity-block .cmeta{font-size:6px;}
+  html[data-view="mobile"] .break-day-banner{left:1px;right:1px;font-size:7px;padding:2px 2px;border-width:1px;word-break:break-word;}
+  html[data-view="mobile"] .allday-row .day-col{padding:2px 1px;}
+  html[data-view="mobile"] .allday-chip{font-size:6.5px;line-height:1.2;padding:1px 2px;border-width:1px;white-space:normal;word-break:break-word;overflow-wrap:anywhere;text-overflow:clip;}
+
+  /* Mobile: an active timer lives in the main header, right above the menu */
+  #header-timer-slot{display:none;}
+  html[data-view="mobile"] #header-timer-slot{display:block;width:100%;}
+  html[data-view="mobile"] #header-timer-slot:empty{display:none;}
+  /* Add button on the mobile To-Do heading + type chooser */
+  /* Add-club form: collapsible groups (mobile only; always open on desktop) */
+  .af-group-head{display:none;}
+  html[data-view="mobile"] .af-group{border:1px solid var(--line-soft);border-radius:10px;margin-bottom:12px;overflow:hidden;}
+  html[data-view="mobile"] .af-group-head{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;background:none;border:none;color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer;text-align:left;}
+  html[data-view="mobile"] .af-group-head .af-chev{transition:transform .2s ease;flex:none;color:var(--ink-soft);}
+  html[data-view="mobile"] .af-group.open .af-group-head .af-chev{transform:rotate(180deg);}
+  html[data-view="mobile"] .af-group-body{display:none;padding:2px 14px 0;border-top:1px solid var(--line-soft);}
+  html[data-view="mobile"] .af-group.open .af-group-body,
+  html[data-view="mobile"] .af-group.closing .af-group-body{display:block;padding-top:14px;}
+  html[data-view="mobile"] .more-options.mo-closing .mo-chevron{transform:rotate(0deg);}
+  .todo-add-btn{display:none;}
+  html[data-view="mobile"] #add-activity-btn{display:none;}
+  html[data-view="mobile"] .todo-add-btn{display:inline-block;position:absolute;right:0;top:50%;transform:translateY(-50%);padding:7px 12px;font-size:12px;font-weight:600;letter-spacing:0.02em;}
+  .add-choice-modal{max-width:340px;}
+  .add-choice-list{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px;}
+  .add-choice{
+    display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;width:100%;
+    font-family:'Inter',sans-serif;background:transparent;color:var(--ink);
+    border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;
+  }
+  .add-choice strong{font-size:15px;font-weight:700;}
+  .add-choice span{font-size:12px;color:var(--ink-soft);}
+  .add-choice:hover,.add-choice:focus-visible{border-color:var(--brass);outline:none;}
+  .add-choice[disabled]{opacity:0.5;cursor:not-allowed;}
+  .add-choice[disabled]:hover{border-color:var(--line);}
+  .assign-choice{
+    display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;width:100%;
+    font-family:'Inter',sans-serif;background:transparent;color:var(--ink);
+    border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;
+  }
+  .assign-choice strong{font-size:15px;font-weight:700;}
+  .assign-choice span{font-size:12px;color:var(--ink-soft);}
+  .assign-choice:hover,.assign-choice:focus-visible{border-color:var(--brass);outline:none;}
+  /* Mobile Assignments: "Coming up" heading, Folders and the long add button give way to the + Add chooser */
+  html[data-view="mobile"] #panel-upcoming .upcoming-heading,
+  html[data-view="mobile"] #panel-upcoming #manage-folders-btn,
+  html[data-view="mobile"] #panel-upcoming #add-item-btn{display:none;}
+  /* Coursework logo, level with the TODO LIST heading (mobile only) */
+  .brand-logo-wrap{display:none;}
+  html[data-view="mobile"] .todo-head{position:relative;}
+  html[data-view="mobile"] .brand-logo-wrap{display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);color:var(--ink);line-height:0;}
+  html[data-view="mobile"] .brand-logo{width:60px;height:auto;display:block;}
+  html[data-view="mobile"] .todo-title{font-size:20px;letter-spacing:0.05em;gap:10px;}
+  html:not([data-view="mobile"]) .theme-circle{position:fixed;top:14px;right:14px;z-index:60;}
+  html:not([data-view="mobile"]) header.top{position:static;z-index:auto;background:none;padding-top:0;}
+  html:not([data-view="mobile"]) #header-actions-row{flex-direction:row;align-items:center;gap:14px;}
+  html:not([data-view="mobile"]) header.top .summary{align-self:auto;}
+  html:not([data-view="mobile"]) .header-menu,
+  html:not([data-view="mobile"]) .header-menu-panel{display:contents;}
+  html:not([data-view="mobile"]) .header-menu-panel{visibility:visible;opacity:1;pointer-events:auto;transform:none;}
+  html:not([data-view="mobile"]) .header-menu-bar{display:none;}
+  /* Desktop: one full-width row across the top: summary, quick links, section slider (stretches), timer */
+  html:not([data-view="mobile"]) #header-actions-row{flex:1 1 100%;width:100%;min-width:0;flex-wrap:nowrap;justify-content:flex-start;align-items:center;gap:14px;}
+  html:not([data-view="mobile"]) #header-actions-row .summary{white-space:nowrap;max-width:none;text-align:left;font-size:13px;}
+  html:not([data-view="mobile"]) #header-quick-links .btn{white-space:nowrap;}
+  html:not([data-view="mobile"]) .section-switch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));order:2;flex:1 1 280px;min-width:240px;max-width:none;}
+  html:not([data-view="mobile"]) .section-switch .ss-opt{font-size:9.5px;letter-spacing:0;padding:10px 0;}
+  html:not([data-view="mobile"]) .header-menu-panel .class-timer-bar{order:1;}
+  html:not([data-view="mobile"]) #header-quick-links{justify-content:flex-start;flex-wrap:nowrap;gap:14px;}
+  html:not([data-view="mobile"]) .header-menu-panel .class-timer-bar{width:auto;max-width:210px;min-width:150px;}
+  /* Desktop: the congratulations card becomes a full-width banner above the section tabs instead of being squeezed beside them */
+  html:not([data-view="mobile"]) .header-menu-panel .class-timer-bar.celebrating{width:100%;max-width:none;min-width:0;flex:1 1 100%;order:0;}
+  html:not([data-view="mobile"]) #header-actions-row:has(.class-timer-bar.celebrating){flex-wrap:wrap;}
+  html:not([data-view="mobile"]) .todo-head{justify-content:space-between;align-items:center;text-align:left;margin-bottom:16px;}
+  html:not([data-view="mobile"]) .todo-title{display:none;}
+  html:not([data-view="mobile"]) .page-head{display:none;}
+  html:not([data-view="mobile"]) .todo-title-classic{display:block;}
+  html:not([data-view="mobile"]) .start-heading{font-family:'Manrope',sans-serif;}
+  html:not([data-view="mobile"]) #auth-overlay h2{font-family:'Manrope',sans-serif;}
+
+  /* ---- "More options" dropdown inside the Add/Edit forms (desktop + mobile) ---- */
+  .more-options{margin-bottom:14px;border:1px solid var(--line-soft);border-radius:3px;background:var(--input-bg);}
+  .more-options summary{
+    list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:9px 10px;font-size:12.5px;font-weight:500;color:var(--ink-soft);user-select:none;-webkit-user-select:none;
+  }
+  .more-options summary::-webkit-details-marker{display:none;}
+  .more-options summary:hover{color:var(--ink);background:var(--hover-tint);}
+  .more-options summary:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+  .more-options .mo-chevron{flex-shrink:0;transition:transform .2s ease;}
+  .more-options[open] .mo-chevron{transform:rotate(180deg);}
+  .more-options[open] summary{border-bottom:1px solid var(--line-soft);}
+  .more-options-body{padding:12px 10px 0;}
+  /* Mobile: match the Add-club dropdown look */
+  html[data-view="mobile"] .more-options{margin-bottom:12px;border-radius:10px;background:none;overflow:hidden;}
+  html[data-view="mobile"] .more-options summary{padding:12px 14px;font-size:14px;font-weight:600;color:var(--ink);}
+  html[data-view="mobile"] .more-options summary:hover{background:none;}
+  html[data-view="mobile"] .more-options .mo-chevron{color:var(--ink-soft);}
+  html[data-view="mobile"] .more-options[open] summary{border-bottom:none;}
+  html[data-view="mobile"] .more-options-body{padding:14px 14px 0;border-top:1px solid var(--line-soft);}
+
+  /* ---- Mobile mode: keep every popup form inside the phone width ---- */
+  html[data-view="mobile"] .overlay{padding:14px;}
+  html[data-view="mobile"] .modal{
+    width:100%;max-width:min(380px, calc(100vw - 28px));
+    padding:18px 16px;overflow-x:hidden;
+  }
+  html[data-view="mobile"] .modal h2{font-size:17px;margin-bottom:12px;}
+  html[data-view="mobile"] .add-choice-modal{max-width:min(340px, calc(100vw - 28px));}
+  html[data-view="mobile"] .two-col{gap:8px;}
+  html[data-view="mobile"] .two-col .field{min-width:0;}
+  html[data-view="mobile"] .field input[type=text],
+  html[data-view="mobile"] .field input[type=date],
+  html[data-view="mobile"] .field input[type=time],
+  html[data-view="mobile"] .field input[type=number],
+  html[data-view="mobile"] .field select,
+  html[data-view="mobile"] .field textarea{
+    min-width:0;max-width:100%;font-size:13px;
+  }
+  html[data-view="mobile"] .field input[type=date],
+  html[data-view="mobile"] .field input[type=time]{-webkit-appearance:none;appearance:none;min-height:34px;}
+  html[data-view="mobile"] .day-check-row{gap:8px 10px;}
+  html[data-view="mobile"] .day-time-row{gap:6px;}
+  html[data-view="mobile"] .day-time-row input[type=time]{width:92px;min-width:0;}
+  html[data-view="mobile"] .day-time-row .dtr-copy{max-width:96px;min-width:0;}
+  html[data-view="mobile"] .color-row{gap:6px;}
+  html[data-view="mobile"] .swatch{width:24px;height:24px;}
+  html[data-view="mobile"] .modal-actions{flex-wrap:wrap;}
+  html[data-view="mobile"] .modal-actions.split{gap:8px;}
+  html[data-view="mobile"] .exception-row .exc-info{min-width:0;}
 </style>
 </head>
 <body>
 <div class="notification-container" id="notification-container"></div>
 
-<div class="overlay show" id="auth-overlay" style="z-index:300;">
+<div class="overlay" id="auth-overlay" style="z-index:300;">
   <div class="modal" style="max-width:420px;">
     <h2>Sign in to your agenda</h2>
     <p style="font-size:13px;color:var(--ink-soft);margin:0 0 16px;">Your agenda will sync between devices when you use the same account.</p>
@@ -639,19 +1413,24 @@
 </div>
 <div class="start-page" id="start-page">
   <div class="start-page-inner">
-    <h1 class="start-heading">
-      <span>Welcome to your</span>
-      <span class="accent">Personalized Agenda</span>
-    </h1>
-    <div class="start-actions">
-      <button type="button" class="btn" id="start-agenda-btn">My Agenda</button>
+    <div class="start-logo">
+      <svg viewBox="76 58 504 298" role="img" aria-label="Coursework" xmlns="http://www.w3.org/2000/svg">
+        <path class="sl-c-fill" d="M134.4 77.8 Q147 65 165.0 65.0 L295.0 65.0 Q313 65 325.7 77.7 L363.3 115.3 Q376 128 358.0 128.0 L172.0 128.0 Q163 128 163.0 137.0 L163.0 276.0 Q163 285 172.0 285.0 L356.0 285.0 Q374 285 361.4 297.8 L324.6 335.2 Q312 348 294.0 348.0 L164.0 348.0 Q146 348 133.3 335.3 L95.7 297.7 Q83 285 83.0 267.0 L83.0 148.0 Q83 130 95.6 117.2 Z" fill="currentColor"/>
+        <path class="sl-c-draw" pathLength="1" d="M134.4 77.8 Q147 65 165.0 65.0 L295.0 65.0 Q313 65 325.7 77.7 L363.3 115.3 Q376 128 358.0 128.0 L172.0 128.0 Q163 128 163.0 137.0 L163.0 276.0 Q163 285 172.0 285.0 L356.0 285.0 Q374 285 361.4 297.8 L324.6 335.2 Q312 348 294.0 348.0 L164.0 348.0 Q146 348 133.3 335.3 L95.7 297.7 Q83 285 83.0 267.0 L83.0 148.0 Q83 130 95.6 117.2 Z" fill="none" stroke="currentColor" stroke-width="6"/>
+        <rect class="sl-bar" x="189" y="154" width="384" height="108" rx="24" fill="#33509C"/>
+        <text class="sl-text" x="381" y="226" text-anchor="middle" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="46" fill="#fff" textLength="318" lengthAdjust="spacingAndGlyphs">COURSEWORK</text>
+      </svg>
     </div>
-    <button type="button" class="start-skip-btn" id="start-skip-btn">Don't show this again</button>
+    <h1 class="start-heading">
+      <span class="sp-anim sp-h1">Welcome to</span>
+      <span class="accent sp-anim sp-h2">Coursework</span>
+    </h1>
   </div>
 </div>
 
 <div class="app" id="app-root" style="display:none;">
   <header class="top" id="app-header">
+    <button type="button" id="theme-toggle" class="theme-circle" aria-label="Switch theme" title="Switch theme"></button>
     <div id="header-title-block">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <div class="date-block" id="today-label"></div>
@@ -663,35 +1442,57 @@
       </div>
       <h1 id="agenda-heading">Your agenda</h1>
     </div>
-    <div id="header-actions-row" style="display:flex;align-items:center;gap:14px;">
+    <div id="header-actions-row">
       <div class="summary" id="summary-line">Loading…</div>
-      <div id="header-quick-links" style="display:flex;align-items:center;gap:14px;">
+      <div id="header-timer-slot"></div>
+      <div class="header-menu" id="header-menu">
+        <button type="button" class="header-menu-bar" id="header-menu-btn" aria-expanded="false" aria-controls="header-menu-panel">
+          <span>Menu <span class="hm-current" id="header-menu-current">· To-Do List</span></span>
+          <svg class="hm-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="header-menu-panel" id="header-menu-panel">
+          <div class="section-switch" id="section-switch" role="tablist" aria-label="Sections" style="--idx:0">
+            <span class="ss-thumb" aria-hidden="true"></span>
+            <button type="button" class="tab-btn ss-opt active" role="tab" data-tab="todolist" data-label="To-Do List">To-Do</button>
+            <button type="button" class="tab-btn ss-opt" role="tab" data-tab="schedule" data-label="Calendar">Calendar</button>
+            <button type="button" class="tab-btn ss-opt" role="tab" data-tab="upcoming" data-label="Assignments &amp; Exams">Assignments</button>
+            <button type="button" class="tab-btn ss-opt" role="tab" data-tab="activities" data-label="Clubs &amp; Activities">Clubs</button>
+          </div>
+          <div id="header-quick-links">
         <a class="btn secondary" href="https://blackboard.wm.edu" target="_blank" rel="noopener noreferrer">Blackboard</a>
         <a class="btn secondary" href="https://outlook.cloud.microsoft" target="_blank" rel="noopener noreferrer">Outlook</a>
-        <button class="btn secondary" id="theme-toggle" type="button">Dark mode</button>
-        <button class="btn secondary" id="signout-btn" type="button">Sign out</button>
-      </div>
-      <div class="class-timer-bar inactive" id="class-timer-box">
+        <button class="btn secondary" id="signin-placeholder-btn" type="button">Sign Out</button>
+          </div>
+          <div class="class-timer-bar inactive" id="class-timer-box">
         <button type="button" class="ct-close" id="timer-dismiss-btn" aria-label="Dismiss">×</button>
         <span class="ct-line ct-top">TIMER</span>
         <span class="ct-time"></span>
         <span class="ct-line ct-bottom">INACTIVE</span>
+        <span class="ct-m-text"><span class="ct-line ct-m-top"></span><span class="ct-m-bottom"></span></span>
+          </div>
+        </div>
       </div>
     </div>
   </header>
 
-  <nav class="tabs">
-    <button class="tab-btn active" data-tab="schedule">Calendar</button>
-    <button class="tab-btn" data-tab="upcoming">Assignments &amp; Exams</button>
-    <button class="tab-btn" data-tab="activities">Clubs &amp; Activities</button>
-    <button class="tab-btn" data-tab="todolist">To-Do List</button>
-  </nav>
-
-  <section class="panel active" id="panel-schedule">
-    <div class="view-toggle" style="margin-bottom:14px;">
-      <button type="button" class="view-toggle-btn active" id="mode-classes-btn">Classes &amp; Clubs</button>
-      <button type="button" class="view-toggle-btn" id="mode-todos-btn">Assignments &amp; Tasks</button>
+  <section class="panel" id="panel-schedule">
+    <div class="section-head todo-head page-head">
+      <span class="brand-logo-wrap"><svg class="brand-logo" viewBox="76 58 504 298" role="img" aria-label="Coursework" xmlns="http://www.w3.org/2000/svg">
+              <path d="M134.4 77.8 Q147 65 165.0 65.0 L295.0 65.0 Q313 65 325.7 77.7 L363.3 115.3 Q376 128 358.0 128.0 L172.0 128.0 Q163 128 163.0 137.0 L163.0 276.0 Q163 285 172.0 285.0 L356.0 285.0 Q374 285 361.4 297.8 L324.6 335.2 Q312 348 294.0 348.0 L164.0 348.0 Q146 348 133.3 335.3 L95.7 297.7 Q83 285 83.0 267.0 L83.0 148.0 Q83 130 95.6 117.2 Z" fill="currentColor"/>
+              <rect x="189" y="154" width="384" height="108" rx="24" fill="#33509C"/>
+              <text x="381" y="226" text-anchor="middle" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="46" fill="#fff" textLength="318" lengthAdjust="spacingAndGlyphs">COURSEWORK</text>
+            </svg></span>
+      <h2 class="todo-title">
+        <svg id="cal-title-icon" width="38" height="38" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="overflow:visible;"><rect x="2.5" y="5.5" width="23" height="22" rx="3.5"/><path d="M2.5 10.5h23M8.5 2.5v4M19.5 2.5v4"/><text id="cal-icon-day" x="14" y="24" text-anchor="middle" font-size="13.5" font-weight="800" fill="currentColor" stroke="none">1</text></svg>
+        <span>CALENDAR</span>
+      </h2>
+      <button type="button" class="btn todo-add-btn" id="break-add-btn" aria-haspopup="dialog">+ Break</button>
     </div>
+    <div class="view-toggle" id="cal-mode-toggle">
+      <button type="button" class="view-toggle-btn active" id="mode-classes-btn">Classes &amp; Clubs</button>
+      <button type="button" class="view-toggle-btn" id="mode-todos-btn"><span class="lbl-full">Assignments &amp; Tasks</span><span class="lbl-short">Due dates</span></button>
+    </div>
+    <button class="btn" id="manage-breaks-btn">Breaks</button>
     <div class="section-head">
       <h2 style="font-size:18px;" id="schedule-heading">This week</h2>
       <div class="section-head-actions" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -711,7 +1512,6 @@
           <button type="button" class="btn secondary" id="month-next" aria-label="Next month">›</button>
           <button type="button" class="btn" id="month-today-btn">This Month</button>
         </div>
-        <button class="btn" id="manage-breaks-btn">School breaks</button>
         <button class="btn" id="add-class-btn">Add class</button>
       </div>
     </div>
@@ -719,36 +1519,64 @@
     <div class="class-list-section">
       <h3 class="class-list-heading">Your classes</h3>
       <div id="class-list"></div>
+      <button class="btn" id="add-class-btn-bottom" type="button">Add class</button>
     </div>
   </section>
 
   <section class="panel" id="panel-upcoming">
+    <div class="section-head todo-head page-head">
+      <span class="brand-logo-wrap"><svg class="brand-logo" viewBox="76 58 504 298" role="img" aria-label="Coursework" xmlns="http://www.w3.org/2000/svg">
+              <path d="M134.4 77.8 Q147 65 165.0 65.0 L295.0 65.0 Q313 65 325.7 77.7 L363.3 115.3 Q376 128 358.0 128.0 L172.0 128.0 Q163 128 163.0 137.0 L163.0 276.0 Q163 285 172.0 285.0 L356.0 285.0 Q374 285 361.4 297.8 L324.6 335.2 Q312 348 294.0 348.0 L164.0 348.0 Q146 348 133.3 335.3 L95.7 297.7 Q83 285 83.0 267.0 L83.0 148.0 Q83 130 95.6 117.2 Z" fill="currentColor"/>
+              <rect x="189" y="154" width="384" height="108" rx="24" fill="#33509C"/>
+              <text x="381" y="226" text-anchor="middle" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="46" fill="#fff" textLength="318" lengthAdjust="spacingAndGlyphs">COURSEWORK</text>
+            </svg></span>
+      <h2 class="todo-title">
+        <svg width="32" height="32" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="overflow:visible;"><path d="M8 3h9l5 5v15a1.5 1.5 0 0 1-1.5 1.5h-12.5A1.5 1.5 0 0 1 7 23V4.5A1.5 1.5 0 0 1 8 3z"/><path d="M11 14h8M11 19h8"/></svg>
+        <span>ASSIGNMENTS</span>
+      </h2>
+      <button type="button" class="btn todo-add-btn" id="upcoming-add-btn" aria-haspopup="dialog">+ Add</button>
+    </div>
     <div class="section-head">
-      <h2 style="font-size:18px;">Coming up</h2>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <h2 class="upcoming-heading" style="font-size:18px;">Coming up</h2>
+      <div class="upcoming-actions" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="upcoming-toggles">
         <div class="view-toggle">
           <button type="button" class="view-toggle-btn active" id="filter-all-btn">All</button>
           <button type="button" class="view-toggle-btn" id="filter-assignments-btn">Assignments</button>
           <button type="button" class="view-toggle-btn" id="filter-exams-btn">Exams</button>
+          <span class="vt-label" aria-hidden="true">Show</span>
         </div>
         <div class="view-toggle">
           <button type="button" class="view-toggle-btn active" id="sort-date-btn">Due date</button>
           <button type="button" class="view-toggle-btn" id="sort-course-btn">Course</button>
         </div>
+        </div>
         <button class="btn secondary" id="manage-folders-btn">Folders</button>
-        <button class="btn" id="add-item-btn">Add assignment or exam</button>
+        <button class="btn" id="add-item-btn">+ Add</button>
       </div>
     </div>
     <div id="upcoming-list"></div>
   </section>
 
   <section class="panel" id="panel-activities">
+    <div class="section-head todo-head page-head">
+      <span class="brand-logo-wrap"><svg class="brand-logo" viewBox="76 58 504 298" role="img" aria-label="Coursework" xmlns="http://www.w3.org/2000/svg">
+              <path d="M134.4 77.8 Q147 65 165.0 65.0 L295.0 65.0 Q313 65 325.7 77.7 L363.3 115.3 Q376 128 358.0 128.0 L172.0 128.0 Q163 128 163.0 137.0 L163.0 276.0 Q163 285 172.0 285.0 L356.0 285.0 Q374 285 361.4 297.8 L324.6 335.2 Q312 348 294.0 348.0 L164.0 348.0 Q146 348 133.3 335.3 L95.7 297.7 Q83 285 83.0 267.0 L83.0 148.0 Q83 130 95.6 117.2 Z" fill="currentColor"/>
+              <rect x="189" y="154" width="384" height="108" rx="24" fill="#33509C"/>
+              <text x="381" y="226" text-anchor="middle" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="46" fill="#fff" textLength="318" lengthAdjust="spacingAndGlyphs">COURSEWORK</text>
+            </svg></span>
+      <h2 class="todo-title">
+        <svg width="32" height="32" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="overflow:visible;"><circle cx="10" cy="9" r="4"/><path d="M3 24c0-4.4 3-7.5 7-7.5s7 3.1 7 7.5"/><circle cx="20" cy="10" r="3"/><path d="M19.5 16.5c3.4.2 5.5 2.7 5.5 6.5"/></svg>
+        <span>CLUBS</span>
+      </h2>
+      <button type="button" class="btn todo-add-btn" id="clubs-add-btn" aria-haspopup="dialog">+ Add</button>
+    </div>
     <div class="section-head">
-      <h2 style="font-size:18px;" id="activities-heading">Your clubs &amp; Activities</h2>
+      <h2 style="font-size:18px;" id="activities-heading">Your Clubs &amp; Activities</h2>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <div class="view-toggle">
           <button type="button" class="view-toggle-btn active" id="activities-view-clubs-btn">Clubs</button>
-          <button type="button" class="view-toggle-btn" id="activities-view-todolist-btn">Club Task List</button>
+          <button type="button" class="view-toggle-btn" id="activities-view-todolist-btn">Task List</button>
         </div>
         <button class="btn" id="add-activity-btn">Add club</button>
       </div>
@@ -756,10 +1584,21 @@
     <div id="activities-list"></div>
   </section>
 
-  <section class="panel" id="panel-todolist">
-    <div class="section-head">
-      <h2 style="font-size:18px;">To-Do List</h2>
+  <section class="panel active" id="panel-todolist">
+    <div class="section-head todo-head">
+      <span class="brand-logo-wrap"><svg class="brand-logo" viewBox="76 58 504 298" role="img" aria-label="Coursework" xmlns="http://www.w3.org/2000/svg">
+              <path d="M134.4 77.8 Q147 65 165.0 65.0 L295.0 65.0 Q313 65 325.7 77.7 L363.3 115.3 Q376 128 358.0 128.0 L172.0 128.0 Q163 128 163.0 137.0 L163.0 276.0 Q163 285 172.0 285.0 L356.0 285.0 Q374 285 361.4 297.8 L324.6 335.2 Q312 348 294.0 348.0 L164.0 348.0 Q146 348 133.3 335.3 L95.7 297.7 Q83 285 83.0 267.0 L83.0 148.0 Q83 130 95.6 117.2 Z" fill="currentColor"/>
+              <rect x="189" y="154" width="384" height="108" rx="24" fill="#33509C"/>
+              <text x="381" y="226" text-anchor="middle" font-family="Inter,'Helvetica Neue',Arial,sans-serif" font-weight="700" font-size="46" fill="#fff" textLength="318" lengthAdjust="spacingAndGlyphs">COURSEWORK</text>
+            </svg></span>
+      <h2 class="todo-title intro-pending">
+        <svg width="32" height="32" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="overflow:visible"><path pathLength="1" d="M5.2 9.6C8.4 8.7 13.6 9.2 19.8 8.6C20.5 13 20.2 19.2 19.7 24.7C14.2 25.4 9.1 24.8 4.5 25.1C3.7 20 4 14 4.7 9.4"/><path pathLength="1" d="M7.4 15.6C9 16.9 10.7 18.9 12.4 20.8C16.2 14.4 20.1 8.2 25.4 3.4"/></svg>
+        <span class="ttl-todo">TODO LIST</span><span class="ttl-welcome">Welcome to <b class="cw">Coursework</b></span>
+      </h2>
+      <button type="button" class="btn todo-add-btn" id="todo-add-btn" aria-haspopup="dialog">+ Add</button>
+      <h2 class="todo-title-classic">To-Do List</h2>
     </div>
+    <p class="todo-sub intro-pending">Your all-in-one agenda application. Here is your Todo List.</p>
     <div id="todolist-list"></div>
   </section>
 
@@ -863,6 +1702,16 @@
   </div>
 </div>
 
+<div class="overlay" id="day-overlay">
+  <div class="modal" id="day-modal">
+    <h2 id="day-heading">Day</h2>
+    <div id="day-body"></div>
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button type="button" class="btn secondary" id="day-close">Close</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="breaks-overlay">
   <div class="modal">
     <h2 id="brk-heading">Add a school break</h2>
@@ -930,6 +1779,45 @@
   </div>
 </div>
 
+<div class="overlay" id="detail-overlay">
+  <div class="modal" id="detail-modal">
+    <h2 id="dt-heading">Details</h2>
+    <div id="dt-body"></div>
+    <div class="modal-actions split">
+      <button type="button" class="btn secondary" id="dt-close">Close</button>
+      <button type="button" class="btn" id="dt-edit">Edit</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="add-choice-overlay">
+  <div class="modal add-choice-modal">
+    <h2>Add to your to-do list</h2>
+    <div class="add-choice-list">
+      <button type="button" class="add-choice" data-kind="assignment"><strong>Assignment</strong><span>Homework, papers and projects for a class</span></button>
+      <button type="button" class="add-choice" data-kind="exam"><strong>Exam</strong><span>Quizzes, midterms and finals for a class</span></button>
+      <button type="button" class="add-choice" data-kind="club" id="add-choice-club"><strong>Club task</strong><span id="add-choice-club-note">Something to do for one of your clubs</span></button>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="add-choice-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="add-assign-overlay">
+  <div class="modal add-choice-modal">
+    <h2>Add to your Assignments</h2>
+    <div class="add-choice-list">
+      <button type="button" class="assign-choice" data-kind="assignment"><strong>Assignment</strong><span>Homework, papers and projects for a class</span></button>
+      <button type="button" class="assign-choice" data-kind="exam"><strong>Exam</strong><span>Quizzes, midterms and finals for a class</span></button>
+      <button type="button" class="assign-choice" data-kind="folder"><strong>Folder</strong><span>Group related work together, like lab reports</span></button>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="add-assign-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="item-overlay">
   <div class="modal">
     <h2 id="if-heading">Add assignment or Exam</h2>
@@ -972,23 +1860,29 @@
         <label>Exam type</label>
         <div class="radio-row">
           <label><input type="radio" name="if-exam-type" value="regular" checked>Exam</label>
-          <label><input type="radio" name="if-exam-type" value="final">Final Exam</label>
+          <label><input type="radio" name="if-exam-type" value="midterm">Midterm</label>
+          <label><input type="radio" name="if-exam-type" value="final">Final</label>
         </div>
       </div>
-      <div class="field" id="if-folder-field">
-        <label for="if-folder">Folder (optional)</label>
-        <select id="if-folder">
-          <option value="">No folder</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="if-link">Link (optional)</label>
-        <input type="text" id="if-link" placeholder="https://canvas.example.edu/assignments/42">
-      </div>
-      <div class="field">
-        <label for="if-notes">Notes (optional)</label>
-        <textarea id="if-notes" placeholder="Chapters 6–7, bring a calculator"></textarea>
-      </div>
+      <details class="more-options" id="if-more">
+        <summary><span>More options</span><svg class="mo-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="more-options-body">
+          <div class="field" id="if-folder-field">
+            <label for="if-folder">Folder (optional)</label>
+            <select id="if-folder">
+              <option value="">No folder</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="if-link">Link (optional)</label>
+            <input type="text" id="if-link" placeholder="https://canvas.example.edu/assignments/42">
+          </div>
+          <div class="field">
+            <label for="if-notes">Notes (optional)</label>
+            <textarea id="if-notes" placeholder="Chapters 6–7, bring a calculator"></textarea>
+          </div>
+        </div>
+      </details>
       <div class="modal-actions split">
         <button type="button" class="btn secondary" id="if-delete" style="display:none;color:var(--danger);border-color:var(--danger);">Delete</button>
         <div style="display:flex;gap:8px;">
@@ -1013,6 +1907,9 @@
         <label for="af-role">Your role (optional)</label>
         <input type="text" id="af-role" placeholder="Treasurer">
       </div>
+      <div class="af-group" id="af-grp-meet">
+        <button type="button" class="af-group-head" aria-expanded="false" aria-controls="af-grp-meet-body"><span>Meetings</span><svg class="af-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="af-group-body" id="af-grp-meet-body">
       <div class="field">
         <label>Meets on (optional)</label>
         <div class="day-check-row" id="af-days">
@@ -1052,6 +1949,11 @@
         <label for="af-meet">Meeting location / notes (optional)</label>
         <input type="text" id="af-meet" placeholder="Sadler Center 210">
       </div>
+        </div>
+      </div>
+      <div class="af-group" id="af-grp-more">
+        <button type="button" class="af-group-head" aria-expanded="false" aria-controls="af-grp-more-body"><span>More options</span><svg class="af-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="af-group-body" id="af-grp-more-body">
       <div class="field">
         <label for="af-link">Link (optional)</label>
         <input type="text" id="af-link" placeholder="https://groupme.com/...">
@@ -1059,6 +1961,8 @@
       <div class="field">
         <label for="af-notes">Notes (optional)</label>
         <textarea id="af-notes" placeholder="Dues due each semester"></textarea>
+      </div>
+        </div>
       </div>
       <div class="field">
         <label>Color</label>
@@ -1199,18 +2103,23 @@
         </div>
       </div>
       <div class="error-text" id="td-date-err">Pick a due date.</div>
-      <div class="field">
-        <label for="td-location">Location (optional)</label>
-        <input type="text" id="td-location" placeholder="Student Union, room 214">
-      </div>
-      <div class="field">
-        <label for="td-link">Link (optional)</label>
-        <input type="text" id="td-link" placeholder="https://forms.example.com/...">
-      </div>
-      <div class="field">
-        <label for="td-notes">Notes (optional)</label>
-        <textarea id="td-notes" placeholder="Attach receipts before submitting"></textarea>
-      </div>
+      <details class="more-options" id="td-more">
+        <summary><span>More options</span><svg class="mo-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="more-options-body">
+          <div class="field">
+            <label for="td-location">Location (optional)</label>
+            <input type="text" id="td-location" placeholder="Student Union, room 214">
+          </div>
+          <div class="field">
+            <label for="td-link">Link (optional)</label>
+            <input type="text" id="td-link" placeholder="https://forms.example.com/...">
+          </div>
+          <div class="field">
+            <label for="td-notes">Notes (optional)</label>
+            <textarea id="td-notes" placeholder="Attach receipts before submitting"></textarea>
+          </div>
+        </div>
+      </details>
       <div class="modal-actions split">
         <button type="button" class="btn secondary" id="td-delete" style="display:none;color:var(--danger);border-color:var(--danger);">Delete</button>
         <div style="display:flex;gap:8px;">
@@ -1222,15 +2131,6 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-/* Supabase cloud sync configuration. The publishable key is safe for browser apps. */
-window.SUPABASE_URL = "https://owdknqityxvvbmjshvte.supabase.co";
-window.SUPABASE_PUBLISHABLE_KEY = "sb_publishable_h0h3PCWX5La1FyjEVp5sWw_yt_Hej5E";
-window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-});
-</script>
 <script>
 /* GitHub Pages + Supabase storage adapter.
    The agenda data lives in Supabase; localStorage is kept as a small offline cache. */
@@ -1251,6 +2151,7 @@ window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window
   function cacheCloudData(){
     CLOUD_KEYS.forEach(k => {
       if(Object.prototype.hasOwnProperty.call(cloudData,k)) localSet(k, cloudData[k]);
+      else localStorage.removeItem(STORAGE_PREFIX + k);
     });
   }
 
@@ -1328,8 +2229,12 @@ window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window
 const DAY_ORDER = ['Mon','Tue','Wed','Thu','Fri'];
 const DAY_START_MIN = 7*60;
 const DAY_END_MIN = 22*60;
-const PX_PER_MIN = 0.62;
-const GRID_HEIGHT = (DAY_END_MIN - DAY_START_MIN) * PX_PER_MIN;
+let PX_PER_MIN = 0.62;
+let GRID_HEIGHT = (DAY_END_MIN - DAY_START_MIN) * PX_PER_MIN;
+function applyGridScale(){
+  PX_PER_MIN = isMobileViewActive() ? 1.2 : 0.62; // mobile: taller hours so tiny text fits in each block
+  GRID_HEIGHT = (DAY_END_MIN - DAY_START_MIN) * PX_PER_MIN;
+}
 const CLASS_COLORS = [
   '#4A3016','#401F1F','#1B2438','#2E3B2A','#3A2E1A','#2A1F33',
   '#A97620','#7A3030','#2E3E5C','#4E6B58','#8A6642','#5C4B7A',
@@ -1485,6 +2390,11 @@ function getCurrentWeekDates(){
   const diffToMonday = dow === 0 ? -6 : 1 - dow;
   const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + diffToMonday + currentWeekOffset*7);
   return DAY_ORDER.map((_, i) => new Date(monday.getFullYear(), monday.getMonth(), monday.getDate()+i));
+}
+
+function getCurrentWeekDatesFull(){
+  const mon = getCurrentWeekDates()[0];
+  return [0,1,2,3,4,5,6].map(i => new Date(mon.getFullYear(), mon.getMonth(), mon.getDate()+i));
 }
 
 function formatWeekLabel(weekDates){
@@ -1726,15 +2636,130 @@ function getClubMeetForDate(club, day, dateKey){
   return { start: base.start, end: base.end, title: club.meetTitle || 'Meets', location: club.meet || '', isOverride: false };
 }
 
-function renderWeekGrid(){
+/* Calendar page icon shows today's date */
+function updateCalendarIcon(){
+  const d = new Date();
+  const day = document.getElementById('cal-icon-day');
+  if(!day) return;
+  day.textContent = d.getDate();
+}
+updateCalendarIcon();
+setInterval(updateCalendarIcon, 60000);
+
+/* "NOW" bar for the mobile week grid */
+function positionNowIndicator(){
+  const nowMin = new Date().getHours()*60 + new Date().getMinutes();
+  const inRange = nowMin >= DAY_START_MIN && nowMin <= DAY_END_MIN;
+  const top = ((nowMin - DAY_START_MIN) * PX_PER_MIN) + 'px';
+  document.querySelectorAll('#schedule-wrap .now-line, #schedule-wrap .now-pill').forEach(el => {
+    el.style.display = inRange ? '' : 'none';
+    el.style.top = top;
+  });
+}
+function addNowIndicator(wrap, weekDateKeys){
+  const idx = weekDateKeys.indexOf(formatDateKey(new Date()));
+  if(idx < 0) return;
+  const gs = wrap.querySelector('.grid-scroll');
+  if(!gs) return;
+  const dc = gs.querySelector('.days-cols');
+  const hc = gs.querySelector('.hour-col');
+  const line = document.createElement('div');
+  line.className = 'now-line';
+  line.innerHTML = '<span class="now-dot" style="left:'+(idx / weekDateKeys.length * 100)+'%"></span>';
+  dc.appendChild(line);
+  const pill = document.createElement('div');
+  pill.className = 'now-pill';
+  pill.textContent = 'NOW';
+  hc.appendChild(pill);
+  positionNowIndicator();
+}
+setInterval(positionNowIndicator, 30000);
+
+/* Mobile calendar scroll: opens with the hour before "now" at the top; later re-renders keep the user's position */
+let calScrollTop = null;
+let calScrollLeft = null;
+let calScrollLeftDue = null;
+let calRestoring = false;
+function applyCalendarScroll(){
   const wrap = document.getElementById('schedule-wrap');
-  const weekDates = getCurrentWeekDates();
+  if(!wrap || wrap.offsetParent === null) return;
+  const tg = wrap.querySelector('.tg-inner');
+  const ds = wrap.querySelector('.due-stack-inner');
+  const inner = tg || ds;
+  if(!inner) return;
+  let top = 0;
+  if(tg){
+    top = calScrollTop;
+    if(top === null){
+      const now = new Date();
+      const nowMin = now.getHours()*60 + now.getMinutes();
+      top = Math.max(0, (nowMin - 60 - DAY_START_MIN) * PX_PER_MIN);
+    }
+  }
+  let left = tg ? calScrollLeft : calScrollLeftDue;
+  if(left === null){
+    const idx = parseInt(inner.dataset.today, 10);
+    left = idx >= 0 ? idx * ((inner.clientWidth - (tg ? 30 : 0)) / 7) : 0;
+  }
+  calRestoring = true;
+  wrap.scrollTop = top;
+  wrap.scrollLeft = left;
+  requestAnimationFrame(() => requestAnimationFrame(() => { calRestoring = false; }));
+}
+document.getElementById('schedule-wrap').addEventListener('scroll', () => {
+  if(calRestoring) return;
+  const wrap = document.getElementById('schedule-wrap');
+  if(wrap.offsetParent === null) return;
+  if(!isMobileViewActive()){
+    if(wrap.querySelector('.week-scroll-inner, .due-stack-inner')) deskWeekScrollLeft = wrap.scrollLeft;
+    return;
+  }
+  if(wrap.querySelector('.tg-inner')){ calScrollTop = wrap.scrollTop; calScrollLeft = wrap.scrollLeft; }
+  else if(wrap.querySelector('.due-stack-inner')){ calScrollLeftDue = wrap.scrollLeft; }
+});
+
+let deskWeekScrollLeft = null;
+let deskWeekScrollKey = null;
+/* Desktop week views open scrolled so the current day is the first visible column; later re-renders of the same week keep the user's position */
+function scrollDeskWeek(wrap, weekDateKeys, kind){
+  const inner = wrap.querySelector('.week-scroll-inner, .due-stack-inner');
+  if(!inner || wrap.offsetParent === null) return;
+  const key = kind + '|' + weekDateKeys[0];
+  let left;
+  if(deskWeekScrollKey === key && deskWeekScrollLeft !== null){
+    left = deskWeekScrollLeft;
+  } else {
+    const idx = weekDateKeys.indexOf(formatDateKey(new Date()));
+    const hourW = inner.classList.contains('week-scroll-inner') ? 76 : 0;
+    left = idx > 0 ? idx * ((inner.clientWidth - hourW) / 7) : 0;
+    deskWeekScrollKey = key;
+  }
+  calRestoring = true;
+  wrap.scrollLeft = left;
+  deskWeekScrollLeft = wrap.scrollLeft;
+  requestAnimationFrame(() => requestAnimationFrame(() => { calRestoring = false; }));
+}
+function wrapWeekScroll(wrap, weekDateKeys, kind){
+  const inner = document.createElement('div');
+  inner.className = 'week-scroll-inner';
+  while(wrap.firstChild) inner.appendChild(wrap.firstChild);
+  wrap.appendChild(inner);
+  if(weekDateKeys) scrollDeskWeek(wrap, weekDateKeys, kind);
+}
+
+function renderWeekGrid(){
+  applyGridScale();
+  const wrap = document.getElementById('schedule-wrap');
+  const mobileWeek = isMobileViewActive();
+  const weekDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const weekDates = getCurrentWeekDatesFull();
   const weekDateKeys = weekDates.map(d => formatDateKey(d));
   document.getElementById('week-label').textContent = formatWeekLabel(weekDates);
   const hasWeekActivities = clubActivities.some(a => a.time && weekDateKeys.includes(a.date));
-  const hasWeekMeets = clubs.some(c => (c.meetDays||[]).some(d => DAY_ORDER.includes(d) && getClubMeetTimeForDay(c,d)));
+  const hasWeekMeets = clubs.some(c => (c.meetDays||[]).some(d => weekDays.includes(d) && getClubMeetTimeForDay(c,d)));
+  const hasWeekExams = items.some(it => it.type === 'exam' && weekDateKeys.includes(it.dueDate) && !isItemArchived(it));
 
-  if(classes.length === 0 && !hasWeekActivities && !hasWeekMeets){
+  if(classes.length === 0 && !hasWeekActivities && !hasWeekMeets && !hasWeekExams){
     wrap.innerHTML = '<div class="empty-state"><p>No classes yet. Add your first class to see your week take shape.</p><button class="btn" id="empty-add-class">Add class</button></div>';
     document.getElementById('empty-add-class').addEventListener('click', () => openClassModal());
     return;
@@ -1749,7 +2774,7 @@ function renderWeekGrid(){
   }
 
   let dayCols = '';
-  DAY_ORDER.forEach((day, idx) => {
+  weekDays.forEach((day, idx) => {
     let hlines = '';
     for(let m = DAY_START_MIN; m <= DAY_END_MIN; m += 60){
       const top = (m - DAY_START_MIN) * PX_PER_MIN;
@@ -1786,6 +2811,22 @@ function renderWeekGrid(){
         '</button>';
     });
 
+    items.filter(it => it.type === 'exam' && it.dueDate === dateKey && !isItemArchived(it)).forEach(it => {
+      const color = dueColorFor(it, false);
+      const label = examLabel(it) + ': ' + it.title;
+      const cls = classes.find(c => c.id === it.courseId);
+      const startM = it.dueTime ? timeToMin(it.dueTime) : DAY_START_MIN;
+      const durationMin = it.dueTime ? (it.duration || 60) : 30;
+      const top = Math.min(Math.max(0, (startM - DAY_START_MIN) * PX_PER_MIN), GRID_HEIGHT - 18);
+      const height = Math.max(18, durationMin * PX_PER_MIN);
+      const endM = it.dueTime ? startM + (it.duration || 0) : 0;
+      const meta = it.dueTime ? formatTime(it.dueTime) + (it.duration ? '–' + formatTime(String(Math.floor((endM % 1440)/60)).padStart(2,'0') + ':' + String(endM % 60).padStart(2,'0')) : '') : 'Today';
+      blocks += '<button type="button" class="activity-block exam-block" data-exam-id="'+it.id+'" style="top:'+top+'px;height:'+height+'px;border-color:'+color+';background:'+color+';color:#fff" title="Edit '+escapeHtml(label)+'">' +
+        '<span class="cname">'+escapeHtml(label)+'</span>' +
+        '<span class="cmeta">'+meta+(cls ? ' · '+escapeHtml(cls.name) : '')+'</span>' +
+        '</button>';
+    });
+
     clubs.filter(c => !c.hidden && !c.archived && (c.meetDays||[]).includes(day) && isClubMeetActiveOnDate(c, dateKey)).forEach(c => {
       const dt = getClubMeetForDate(c, day, dateKey);
       if(!dt) return;
@@ -1800,17 +2841,36 @@ function renderWeekGrid(){
         '</button>';
     });
 
-    dayCols += '<div class="day-col"><div class="day-body" style="height:'+GRID_HEIGHT+'px">'+hlines+blocks+'</div></div>';
+    dayCols += '<div class="day-col'+(dateKey === formatDateKey(new Date()) ? ' today' : '')+'"><div class="day-body" style="height:'+GRID_HEIGHT+'px">'+hlines+blocks+'</div></div>';
   });
 
   wrap.innerHTML =
     '<div class="headers-row"><div class="hour-col"></div><div class="days-cols" style="border-left:none;">' +
-      DAY_ORDER.map(d => '<div class="day-col" style="border-right:none;"><div class="day-header">'+d+'</div></div>').join('') +
+      weekDays.map((d, i) => '<div class="day-col" style="border-right:none;"><div class="day-header'+(weekDateKeys[i] === formatDateKey(new Date()) ? ' today' : '')+'">'+d+'</div></div>').join('') +
     '</div></div>' +
     '<div class="grid-scroll">' +
       '<div class="hour-col" style="height:'+GRID_HEIGHT+'px">'+hourLines+'</div>' +
       '<div class="days-cols">'+dayCols+'</div>' +
     '</div>';
+
+  // Mobile: 7 days at the width of 5; the calendar scrolls sideways to reach Sat/Sun
+  if(mobileWeek){
+    const inner = document.createElement('div');
+    inner.className = 'due-week-inner tg-inner';
+    inner.dataset.today = String(weekDateKeys.indexOf(formatDateKey(new Date())));
+    while(wrap.firstChild) inner.appendChild(wrap.firstChild);
+    wrap.appendChild(inner);
+    // Measure the pinned day-header row so break banners can pin directly beneath it
+    const hdrRow = inner.querySelector('.headers-row');
+    const setHdrH = () => { if(hdrRow && hdrRow.offsetHeight > 0) inner.style.setProperty('--wk-hdr-h', hdrRow.offsetHeight + 'px'); };
+    setHdrH();
+    requestAnimationFrame(setHdrH);
+    addNowIndicator(wrap, weekDateKeys);
+    applyCalendarScroll();
+  } else {
+    wrapWeekScroll(wrap, weekDateKeys, 'classes');
+    addNowIndicator(wrap, weekDateKeys);
+  }
 
   wrap.querySelectorAll('[data-class-id]').forEach(el => {
     el.addEventListener('click', () => {
@@ -1829,6 +2889,12 @@ function renderWeekGrid(){
       const c = clubs.find(x => x.id === el.getAttribute('data-meet-club-id'));
       const dateKey = el.getAttribute('data-meet-date');
       if(c && dateKey) openMeetingOccurrenceModal(c, dateKey);
+    });
+  });
+  wrap.querySelectorAll('[data-exam-id]').forEach(el => {
+    el.addEventListener('click', () => {
+      const it = items.find(x => x.id === el.getAttribute('data-exam-id'));
+      if(it) openItemModal(it);
     });
   });
 }
@@ -1882,6 +2948,12 @@ function renderMonthGrid(){
       chips += '<div class="month-chip outline" data-meet-club-id="'+c.id+'" style="border-color:'+c.color+';background:'+hexToRgba(c.color,0.16)+'" title="'+escapeHtml(c.name)+' '+escapeHtml(meetName)+timeStr+'">'+escapeHtml(c.name)+(dt && dt.isOverride ? ' *' : '')+'</div>';
     });
 
+    items.filter(it => it.type === 'exam' && it.dueDate === dateKey && !isItemArchived(it)).forEach(it => {
+      const color = dueColorFor(it, false);
+      const label = examLabel(it) + ': ' + it.title;
+      chips += '<div class="month-chip" data-exam-id="'+it.id+'" style="background:'+color+'" title="'+escapeHtml(label)+(it.dueTime ? ' '+formatTime(it.dueTime) : '')+'">'+escapeHtml(label)+'</div>';
+    });
+
     cells += '<div class="month-cell'+(isToday?' today':'')+'"><div class="daynum">'+day+'</div>'+chips+'</div>';
   }
 
@@ -1899,8 +2971,9 @@ function dueColorFor(entry, isTodo){
 }
 
 function renderWeekGridTodos(){
+  applyGridScale();
   const wrap = document.getElementById('schedule-wrap');
-  const weekDates = getCurrentWeekDates();
+  const weekDates = getCurrentWeekDatesFull();
   const weekDateKeys = weekDates.map(d => formatDateKey(d));
   document.getElementById('week-label').textContent = formatWeekLabel(weekDates);
   const hasAny = items.some(it => it.type==='assignment' ? !it.done && weekDateKeys.includes(it.dueDate) : weekDateKeys.includes(it.dueDate)) ||
@@ -1911,72 +2984,45 @@ function renderWeekGridTodos(){
     return;
   }
 
-  let hourLines = '';
-  for(let m = DAY_START_MIN; m <= DAY_END_MIN; m += 60){
-    const top = (m - DAY_START_MIN) * PX_PER_MIN;
-    const hour = Math.floor(m/60);
-    const label = hour === 12 ? '12pm' : hour > 12 ? (hour-12)+'pm' : hour+'am';
-    hourLines += '<div class="hour-label" style="top:'+top+'px">'+label+'</div>';
-  }
+  renderWeekDueStackMobile(weekDateKeys);
+}
 
-  let alldayCols = '';
-  let dayCols = '';
-  DAY_ORDER.forEach((_, idx) => {
+/* Due dates week view (mobile and desktop): no time grid, just each day's due cards stacked in time order */
+function renderWeekDueStackMobile(weekDateKeys){
+  const wrap = document.getElementById('schedule-wrap');
+  const cols = weekDateKeys.map((_, idx) => {
     const dateKey = weekDateKeys[idx];
-    const dueItems = items.filter(it => it.dueDate === dateKey && !(it.type==='assignment' && it.done) && !isItemArchived(it));
-    const dueTodos = clubTodos.filter(t => !t.done && t.dueDate === dateKey && !isClubArchived(t.clubId));
-
-    let allday = '';
-    let blocks = '';
-    let hlines = '';
-    for(let m = DAY_START_MIN; m <= DAY_END_MIN; m += 60){
-      const top = (m - DAY_START_MIN) * PX_PER_MIN;
-      hlines += '<div class="hline" style="top:'+top+'px"></div>';
-    }
-
-    dueItems.forEach(it => {
-      const color = dueColorFor(it, false);
-      const label = (it.type==='exam'?(it.isFinal?'Final Exam: ':'Exam: '):'') + it.title;
-      if(it.dueTime){
-        const startM = timeToMin(it.dueTime);
-        const top = Math.max(0, (startM - DAY_START_MIN) * PX_PER_MIN);
-        const height = Math.max(18, 30 * PX_PER_MIN);
-        blocks += '<button type="button" class="activity-block" data-due-item="'+it.id+'" style="top:'+top+'px;height:'+height+'px;border-color:'+color+';background:'+hexToRgba(color,0.16)+'" title="Edit '+escapeHtml(it.title)+'">' +
-          '<span class="cname">'+escapeHtml(label)+'</span>' +
-          '<span class="cmeta">Due '+formatTime(it.dueTime)+'</span>' +
-          '</button>';
-      } else {
-        allday += '<div class="allday-chip" data-due-item="'+it.id+'" style="border-color:'+color+';background:'+hexToRgba(color,0.16)+'" title="'+escapeHtml(it.title)+'">'+escapeHtml(label)+'</div>';
-      }
+    const entries = [];
+    items.filter(it => it.dueDate === dateKey && !(it.type==='assignment' && it.done) && !isItemArchived(it)).forEach(it => {
+      const label = (it.type==='exam'?examLabel(it)+': ':'') + it.title;
+      const cls = classes.find(c => c.id === it.courseId);
+      entries.push({attr:'data-due-item', id:it.id, color:dueColorFor(it,false), label:label, title:it.title, time:it.dueTime, exam:it.type==='exam', src: cls ? cls.name : (it.course || '')});
     });
-
-    dueTodos.forEach(t => {
-      const color = dueColorFor(t, true);
-      if(t.dueTime){
-        const startM = timeToMin(t.dueTime);
-        const top = Math.max(0, (startM - DAY_START_MIN) * PX_PER_MIN);
-        const height = Math.max(18, 30 * PX_PER_MIN);
-        blocks += '<button type="button" class="activity-block" data-due-todo="'+t.id+'" style="top:'+top+'px;height:'+height+'px;border-color:'+color+';background:'+hexToRgba(color,0.16)+'" title="Edit '+escapeHtml(t.title)+'">' +
-          '<span class="cname">'+escapeHtml(t.title)+'</span>' +
-          '<span class="cmeta">Due '+formatTime(t.dueTime)+'</span>' +
-          '</button>';
-      } else {
-        allday += '<div class="allday-chip" data-due-todo="'+t.id+'" style="border-color:'+color+';background:'+hexToRgba(color,0.16)+'" title="'+escapeHtml(t.title)+'">'+escapeHtml(t.title)+'</div>';
-      }
+    clubTodos.filter(t => !t.done && t.dueDate === dateKey && !isClubArchived(t.clubId)).forEach(t => {
+      const club = clubs.find(c => c.id === t.clubId);
+      entries.push({attr:'data-due-todo', id:t.id, color:dueColorFor(t,true), label:t.title, title:t.title, time:t.dueTime, src: club ? club.name : ''});
     });
-
-    alldayCols += '<div class="day-col">'+allday+'</div>';
-    dayCols += '<div class="day-col"><div class="day-body" style="height:'+GRID_HEIGHT+'px">'+hlines+blocks+'</div></div>';
+    entries.sort((a,b) => (a.time ? timeToMin(a.time) : -1) - (b.time ? timeToMin(b.time) : -1));
+    const html = entries.map(e => {
+      const style = e.exam ? 'border-color:'+e.color+';background:'+e.color+';color:#fff' : 'border-color:'+e.color+';background:'+hexToRgba(e.color,0.16);
+      const srcHtml = e.src ? '<span class="ccls">'+escapeHtml(e.src)+'</span>' : '';
+      if(e.time){
+        return '<button type="button" class="activity-block due-stack" '+e.attr+'="'+e.id+'" style="'+style+'" title="Edit '+escapeHtml(e.title)+'">' +
+          '<span class="cname">'+escapeHtml(e.label)+'</span>' + srcHtml +
+          '<span class="cmeta">Due '+formatTime(e.time)+'</span></button>';
+      }
+      return '<div class="allday-chip" '+e.attr+'="'+e.id+'" style="'+style+'" title="'+escapeHtml(e.title)+'">'+escapeHtml(e.label)+srcHtml+'</div>';
+    }).join('');
+    return '<div class="day-col due-stack-col'+(dateKey === formatDateKey(new Date()) ? ' today' : '')+'">'+html+'</div>';
   });
 
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   wrap.innerHTML =
-    '<div class="headers-row"><div class="hour-col"></div><div class="days-cols" style="border-left:none;">' +
-      DAY_ORDER.map(d => '<div class="day-col" style="border-right:none;"><div class="day-header">'+d+'</div></div>').join('') +
+    '<div class="due-week-inner due-stack-inner" data-today="'+weekDateKeys.indexOf(formatDateKey(new Date()))+'">' +
+    '<div class="headers-row"><div class="days-cols" style="border-left:none;">' +
+      dayNames.map((d, i) => '<div class="day-col" style="border-right:none;"><div class="day-header'+(weekDateKeys[i] === formatDateKey(new Date()) ? ' today' : '')+'">'+d+'</div></div>').join('') +
     '</div></div>' +
-    '<div class="allday-row"><div class="hour-col"></div><div class="days-cols">'+alldayCols+'</div></div>' +
-    '<div class="grid-scroll">' +
-      '<div class="hour-col" style="height:'+GRID_HEIGHT+'px">'+hourLines+'</div>' +
-      '<div class="days-cols">'+dayCols+'</div>' +
+    '<div class="days-cols due-stack-cols">'+cols.join('')+'</div>' +
     '</div>';
 
   wrap.querySelectorAll('[data-due-item]').forEach(el => {
@@ -1991,6 +3037,7 @@ function renderWeekGridTodos(){
       if(t) openTodoModal(t);
     });
   });
+  if(isMobileViewActive()) applyCalendarScroll(); else scrollDeskWeek(wrap, weekDateKeys, 'due');
 }
 
 function renderMonthGridTodos(){
@@ -2020,8 +3067,9 @@ function renderMonthGridTodos(){
     let chips = '';
     items.filter(it => it.dueDate === dateKey && !(it.type==='assignment' && it.done) && !isItemArchived(it)).forEach(it => {
       const color = dueColorFor(it, false);
-      const label = (it.type==='exam'?(it.isFinal?'Final Exam: ':'Exam: '):'') + it.title;
-      chips += '<div class="month-chip outline" style="border-color:'+color+';background:'+hexToRgba(color,0.16)+'" title="'+escapeHtml(label)+'">'+escapeHtml(label)+'</div>';
+      const label = (it.type==='exam'?examLabel(it)+': ':'') + it.title;
+      if(it.type === 'exam') chips += '<div class="month-chip" style="background:'+color+'" title="'+escapeHtml(label)+'">'+escapeHtml(label)+'</div>';
+      else chips += '<div class="month-chip outline" style="border-color:'+color+';background:'+hexToRgba(color,0.16)+'" title="'+escapeHtml(label)+'">'+escapeHtml(label)+'</div>';
     });
     clubTodos.filter(t => t.dueDate === dateKey && !t.done && !isClubArchived(t.clubId)).forEach(t => {
       const color = dueColorFor(t, true);
@@ -2036,6 +3084,11 @@ function renderMonthGridTodos(){
 
 function formatDateKey(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function examLabel(it){
+  const k = it.examKind || (it.isFinal ? 'final' : 'regular');
+  return k === 'final' ? 'Final Exam' : k === 'midterm' ? 'Midterm' : 'Exam';
 }
 
 function formatDurationLabel(minutes){
@@ -2103,7 +3156,7 @@ function escapeHtml(s){
 }
 
 function animateCompletionThenRun(cb, color, onComplete){
-  const row = cb.closest('.item-row, .todo-row');
+  const row = cb.closest('.item-row, .todo-row, .tcard');
   if(!row){ onComplete(); return; }
 
   cb.style.visibility = 'hidden';
@@ -2349,7 +3402,7 @@ function renderItemRowHtml(it, overdueFlag){
   html += '<div class="body">';
   html += '<div class="title-line"><span class="t">'+escapeHtml(it.title)+'</span>';
   html += '<span class="when'+(overdueFlag?' overdue':'')+'">'+whenLabel(it)+'</span></div>';
-  let metaLine = '<span class="type-badge" style="background:'+badgeColor+';color:'+badgeText+'">'+(it.type==='exam'?(it.isFinal?'Final Exam':'Exam'):'Assignment')+'</span>';
+  let metaLine = '<span class="type-badge" style="background:'+badgeColor+';color:'+badgeText+'">'+(it.type==='exam'?examLabel(it):'Assignment')+'</span>';
   const courseName = cls ? cls.name : it.course;
   if(courseName) metaLine += ' &nbsp;'+escapeHtml(courseName);
   if(it.type === 'exam' && it.duration) metaLine += ' &nbsp;· '+formatDurationLabel(it.duration);
@@ -2386,12 +3439,25 @@ function whenLabel(it){
 }
 
 /* ---- Tabs ---- */
+function activateTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('panel-'+tab);
+  if(panel) panel.classList.add('active');
+  if(tab === 'schedule'){ calScrollTop = null; calScrollLeft = null; calScrollLeftDue = null; requestAnimationFrame(applyCalendarScroll); }
+  const sw = document.getElementById('section-switch');
+  const ssBtn = sw ? sw.querySelector('.ss-opt[data-tab="'+tab+'"]') : null;
+  if(sw && ssBtn) sw.style.setProperty('--idx', [...sw.querySelectorAll('.ss-opt')].indexOf(ssBtn));
+  const cur = document.getElementById('header-menu-current');
+  if(cur && ssBtn) cur.textContent = '· ' + (ssBtn.getAttribute('data-label') || ssBtn.textContent);
+}
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-'+btn.getAttribute('data-tab')).classList.add('active');
+    activateTab(btn.getAttribute('data-tab'));
+    if(document.documentElement.getAttribute('data-view') === 'mobile'){
+      window.scrollTo({ top: 0 });
+      setTimeout(() => { if(window.headerMenuSetOpen) window.headerMenuSetOpen(false); }, 280);
+    }
   });
 });
 
@@ -2487,6 +3553,7 @@ function openClassModal(cls){
   document.getElementById('cf-name').focus();
 }
 document.getElementById('add-class-btn').addEventListener('click', () => openClassModal());
+document.getElementById('add-class-btn-bottom').addEventListener('click', () => openClassModal());
 
 const classInfoOverlay = document.getElementById('class-info-overlay');
 
@@ -2509,10 +3576,87 @@ function openClassInfoModal(cls){
 document.getElementById('ci-close').addEventListener('click', () => classInfoOverlay.classList.remove('show'));
 classInfoOverlay.addEventListener('click', e => { if(e.target === classInfoOverlay) classInfoOverlay.classList.remove('show'); });
 
+/* ---- Calendar: click or tap a day in Month view to see that day's details ---- */
+const dayOverlay = document.getElementById('day-overlay');
+
+function dayTimeRange(s, e){
+  if(!s) return '';
+  return formatTime(s) + (e ? '–' + formatTime(e) : '');
+}
+
+function dayEntry(color, title, metas){
+  const meta = metas.filter(Boolean).map(m => '<div class="de-meta">'+escapeHtml(m)+'</div>').join('');
+  return '<div class="day-entry" style="border-left-color:'+color+'"><div class="de-title">'+escapeHtml(title)+'</div>'+meta+'</div>';
+}
+
+function openDayModal(dateKey){
+  const date = new Date(dateKey+'T00:00');
+  const weekdayAbbr = MONTH_WEEKDAY_MAP[date.getDay()];
+  const byTime = (a, b) => a.t < b.t ? -1 : a.t > b.t ? 1 : 0;
+
+  // Events (classes, exams, club activities, club meetings, breaks)
+  const entries = [];
+  const brk = isDateInBreak(dateKey);
+  if(brk){
+    entries.push({ t: '', html: dayEntry('var(--ink-soft)', brk.title, [formatBreakDateRange(brk)])});
+  } else {
+    classes.filter(c => !c.hidden && !c.archived && DAY_ORDER.includes(weekdayAbbr) && c.days.includes(weekdayAbbr) && isClassInTerm(c, dateKey)).forEach(c => {
+      entries.push({ t: c.startTime || '', html: dayEntry(c.color, c.name, [dayTimeRange(c.startTime, c.endTime), c.location, c.professor])});
+    });
+  }
+  items.filter(it => it.type === 'exam' && it.dueDate === dateKey && !isItemArchived(it)).forEach(it => {
+    entries.push({ t: it.dueTime || '', html: dayEntry(dueColorFor(it, false), examLabel(it)+': '+it.title, [it.course, it.dueTime ? formatTime(it.dueTime) + (it.duration ? ' · ' + formatDurationLabel(it.duration) : '') : ''])});
+  });
+  clubActivities.filter(a => a.date === dateKey && !isClubArchived(a.clubId)).forEach(a => {
+    const club = clubs.find(c => c.id === a.clubId);
+    entries.push({ t: a.time || '', html: dayEntry(club ? club.color : '#6E3F82', a.title, [club ? club.name : '', dayTimeRange(a.time, a.endTime), a.location])});
+  });
+  clubs.filter(c => !c.hidden && !c.archived && (c.meetDays||[]).includes(weekdayAbbr) && isClubMeetActiveOnDate(c, dateKey)).forEach(c => {
+    const dt = getClubMeetForDate(c, weekdayAbbr, dateKey);
+    const meetName = dt ? dt.title : (c.meetTitle || 'Meets');
+    entries.push({ t: dt ? (dt.start || '') : '', html: dayEntry(c.color, c.name+' — '+meetName, [dt ? dayTimeRange(dt.start, dt.end) : '', dt ? dt.location : ''])});
+  });
+
+  entries.sort(byTime);
+
+  // What's Due (assignments, exams, club to-dos)
+  const dueEntries = [];
+    items.filter(it => it.dueDate === dateKey && !(it.type==='assignment' && it.done) && !isItemArchived(it)).forEach(it => {
+      const label = (it.type==='exam' ? examLabel(it)+': ' : '') + it.title;
+      dueEntries.push({ t: it.dueTime || '', html: dayEntry(dueColorFor(it, false), label, [it.course, it.dueTime ? 'Due '+formatTime(it.dueTime) : ''])});
+    });
+    clubTodos.filter(t => t.dueDate === dateKey && !t.done && !isClubArchived(t.clubId)).forEach(t => {
+      const club = clubs.find(c => c.id === t.clubId);
+      dueEntries.push({ t: t.dueTime || '', html: dayEntry(dueColorFor(t, true), t.title, [club ? club.name : '', t.dueTime ? 'Due '+formatTime(t.dueTime) : '', t.location])});
+    });
+  dueEntries.sort(byTime);
+
+  document.getElementById('day-heading').textContent = date.toLocaleDateString(undefined, {weekday:'long', month:'long', day:'numeric'});
+  document.getElementById('day-body').innerHTML =
+    '<div class="de-section-title">Events</div>' +
+    (entries.length ? entries.map(e => e.html).join('') : '<div class="de-empty">Nothing scheduled.</div>') +
+    '<div class="de-section-title">What\'s Due</div>' +
+    (dueEntries.length ? dueEntries.map(e => e.html).join('') : '<div class="de-empty">Nothing due.</div>');
+  dayOverlay.classList.add('show');
+}
+
+document.getElementById('schedule-wrap').addEventListener('click', e => {
+  if(getScheduleView() !== 'month') return;
+  const cell = e.target.closest('.month-cell:not(.empty)');
+  if(!cell) return;
+  const dn = parseInt(cell.querySelector('.daynum').textContent, 10);
+  if(!dn) return;
+  openDayModal(formatDateKey(new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth(), dn)));
+});
+document.getElementById('day-close').addEventListener('click', () => dayOverlay.classList.remove('show'));
+dayOverlay.addEventListener('click', e => { if(e.target === dayOverlay) dayOverlay.classList.remove('show'); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') dayOverlay.classList.remove('show'); });
+
 function updateScheduleHeading(){
   const base = getScheduleView() === 'month' ? 'Month view' : 'This week';
   document.getElementById('schedule-heading').textContent = calendarMode === 'todos' ? base + ' — due dates' : base;
   document.getElementById('add-class-btn').style.display = calendarMode === 'todos' ? 'none' : 'inline-block';
+  document.getElementById('panel-schedule').setAttribute('data-cal-mode', calendarMode);
 }
 
 function syncViewToggleUI(){
@@ -2772,6 +3916,7 @@ function openBreaksModal(){
   document.getElementById('brk-title').focus();
 }
 document.getElementById('manage-breaks-btn').addEventListener('click', () => openBreaksModal());
+document.getElementById('break-add-btn').addEventListener('click', () => openBreaksModal());
 document.getElementById('brk-cancel').addEventListener('click', () => breaksOverlay.classList.remove('show'));
 breaksOverlay.addEventListener('click', e => { if(e.target === breaksOverlay) breaksOverlay.classList.remove('show'); });
 
@@ -2885,13 +4030,15 @@ function openFoldersModal(){
   foldersOverlay.classList.add('show');
   document.getElementById('fld-name').focus();
 }
+let foldersOpenedFromCard = false;
 function openFoldersModalFor(folder){
+  foldersOpenedFromCard = true;
   fillFolderForm(folder);
   renderFoldersList();
   foldersOverlay.classList.add('show');
   document.getElementById('fld-name').focus();
 }
-document.getElementById('manage-folders-btn').addEventListener('click', () => openFoldersModal());
+document.getElementById('manage-folders-btn').addEventListener('click', () => { foldersOpenedFromCard = false; openFoldersModal(); });
 document.getElementById('fld-cancel').addEventListener('click', () => foldersOverlay.classList.remove('show'));
 foldersOverlay.addEventListener('click', e => { if(e.target === foldersOverlay) foldersOverlay.classList.remove('show'); });
 
@@ -2928,6 +4075,7 @@ document.getElementById('folder-form').addEventListener('submit', e => {
   renderTodoListTab();
   resetFolderForm();
   renderFoldersList();
+  if(foldersOpenedFromCard){ foldersOverlay.classList.remove('show'); foldersOpenedFromCard = false; }
 });
 
 function updateFolderDropdown(){
@@ -2971,11 +4119,13 @@ function openItemModal(it){
     document.getElementById('if-date').value = it.dueDate;
     document.getElementById('if-time').value = it.dueTime || '';
     document.getElementById('if-duration').value = it.duration || '';
-    document.querySelector('input[name=if-exam-type][value="'+(it.isFinal ? 'final' : 'regular')+'"]').checked = true;
+    document.querySelector('input[name=if-exam-type][value="'+(it.examKind || (it.isFinal ? 'final' : 'regular'))+'"]').checked = true;
     document.getElementById('if-folder').value = it.folderId || '';
     document.getElementById('if-link').value = it.link || '';
     document.getElementById('if-notes').value = it.notes || '';
   }
+  // Collapsed by default; opens automatically when editing an item that already has extra details.
+  document.getElementById('if-more').open = !!(it && (it.folderId || it.link || it.notes));
   updateDurationFieldVisibility();
 
   itemOverlay.classList.add('show');
@@ -3045,7 +4195,8 @@ document.getElementById('item-form').addEventListener('submit', e => {
   const type = document.querySelector('input[name=if-type]:checked').value;
   const durationRaw = document.getElementById('if-duration').value;
   const duration = (type === 'exam' && durationRaw) ? parseInt(durationRaw, 10) : null;
-  const isFinal = type === 'exam' && document.querySelector('input[name=if-exam-type]:checked').value === 'final';
+  const examKind = type === 'exam' ? document.querySelector('input[name=if-exam-type]:checked').value : 'regular';
+  const isFinal = examKind === 'final';
   const folderId = type === 'assignment' ? (document.getElementById('if-folder').value || null) : null;
 
   let ok = true;
@@ -3071,6 +4222,7 @@ document.getElementById('item-form').addEventListener('submit', e => {
       existing.dueTime = document.getElementById('if-time').value;
       existing.duration = duration;
       existing.isFinal = isFinal;
+      existing.examKind = examKind;
       existing.folderId = folderId;
       existing.link = link;
       existing.notes = document.getElementById('if-notes').value.trim();
@@ -3086,6 +4238,7 @@ document.getElementById('item-form').addEventListener('submit', e => {
       dueTime: document.getElementById('if-time').value,
       duration,
       isFinal,
+      examKind,
       folderId,
       link,
       notes: document.getElementById('if-notes').value.trim(),
@@ -3179,7 +4332,7 @@ function renderClubCards(){
 
     html += '<div class="club-section-label">Activities</div>';
     html += '<div class="club-activities">';
-    const meetItems = getUpcomingClubMeets(club, 3).map(occ => {
+    const meetItems = getUpcomingClubMeets(club, 2).map(occ => {
       const dt = occ.meet;
       return {
         recurring: true,
@@ -3547,7 +4700,9 @@ function buildFolderEntry(folder, folderItems){
   if(folder.dueDate) candidates.push(new Date(folder.dueDate + 'T' + (folder.dueTime || '23:59')));
   if(activeItems.length) candidates.push(activeItems.reduce((min, it) => it._due < min ? it._due : min, activeItems[0]._due));
   let dueValue;
-  if(candidates.length){
+  if(folder.dueDate){
+    dueValue = candidates[0]; // a due date set on the folder itself is what the card shows
+  } else if(candidates.length){
     dueValue = candidates.reduce((min, d) => d < min ? d : min, candidates[0]);
   } else if(folderItems.length){
     dueValue = folderItems.reduce((min, it) => it._due < min ? it._due : min, folderItems[0]._due);
@@ -3564,6 +4719,8 @@ function isFolderArchived(folder){
 function getFolderEntriesFor(itemsWithDue){
   const folderIds = new Set(assignmentFolders.map(f => f.id));
   const unfoldered = itemsWithDue.filter(it => !it.folderId || !folderIds.has(it.folderId));
+  // Folders only show under "All" or "Assignments" — never when filtering by exams
+  if(upcomingTypeFilter === 'exam') return { unfoldered, folderEntries: [] };
   const folderEntries = assignmentFolders.filter(f => !isFolderArchived(f)).map(folder => {
     const folderItems = itemsWithDue.filter(it => it.folderId === folder.id);
     if(folderItems.length === 0 && !folder.dueDate) return null;
@@ -3644,6 +4801,178 @@ function wireFolderRowEvents(list){
   });
 }
 
+/* ---- To-Do list cards ---- */
+function cardDueParts(dueDateObj, timeStr){
+  const wd = dueDateObj.toLocaleDateString('en-US',{weekday:'short'}).toUpperCase();
+  const md = (dueDateObj.getMonth()+1)+'.'+String(dueDateObj.getDate()).padStart(2,'0');
+  let t = '';
+  if(timeStr){
+    const [h,m] = timeStr.split(':').map(Number);
+    t = (h%12===0 ? 12 : h%12) + ':' + String(m).padStart(2,'0') + (h>=12 ? 'p' : 'a'); // full time, lowercase a/p (3:00p, 11:30a, 11:59p)
+  }
+  return { label: wd+(t ? ' • '+t : ''), md };
+}
+
+function tcPill(text, color){
+  return '<span class="tc-pill" style="background:'+color+';color:'+getContrastText(color)+'" title="'+escapeHtml(text)+'">'+escapeHtml(text)+'</span>';
+}
+
+function tcDateBlock(due, timeStr){
+  const p = cardDueParts(due, timeStr);
+  return '<div class="tc-date"><div class="tc-due">'+p.label+'</div><div class="tc-md">'+p.md+'</div></div>';
+}
+
+function todoCardAssignmentHtml(it, overdueFlag, folderName){
+  const cls = classes.find(c => c.id === it.courseId);
+  const color = cls ? cls.color : '#A97620';
+  const pillText = folderName || (cls ? cls.name : (it.course || ''));
+  const due = it._due || new Date(it.dueDate+'T'+(it.dueTime||'23:59'));
+  return '<div class="tcard'+(it.done?' done':'')+(overdueFlag?' overdue':'')+'" data-card-item="'+it.id+'" role="button" tabindex="0">' +
+    '<input type="checkbox" class="tc-check" style="--tc-fill:'+color+'" data-check="'+it.id+'" '+(it.done?'checked':'')+' aria-label="Mark done">' +
+    '<div class="tc-main"><div class="tc-title">'+escapeHtml(it.title)+'</div>' +
+    (pillText ? '<div class="tc-pills single">'+tcPill(pillText, color)+'</div>' : '') +
+    '</div>' + tcDateBlock(due, it.dueTime) + '</div>';
+}
+
+function todoCardClubTaskHtml(t, overdueFlag){
+  const club = clubs.find(c => c.id === t.clubId);
+  const color = club ? club.color : '#6E3F82';
+  const due = t._due || new Date(t.dueDate+'T'+(t.dueTime||'23:59'));
+  return '<div class="tcard'+(t.done?' done':'')+(overdueFlag?' overdue':'')+'" data-card-todo="'+t.id+'" role="button" tabindex="0">' +
+    '<input type="checkbox" class="tc-check" style="--tc-fill:'+color+'" data-check-todo="'+t.id+'" '+(t.done?'checked':'')+' aria-label="Mark done">' +
+    '<div class="tc-main"><div class="tc-title">'+escapeHtml(t.title)+'</div>' +
+    (club ? '<div class="tc-pills single">'+tcPill(club.name, color)+'</div>' : '') +
+    '</div>' + tcDateBlock(due, t.dueTime) + '</div>';
+}
+
+function todoCardFolderHtml(entry, overdueFlag){
+  const folder = entry.folder, folderItems = entry.folderItems;
+  const expanded = expandedFolders.has(folder.id);
+  const cls = folder.courseId ? classes.find(c => c.id === folder.courseId) : null;
+  const color = cls ? cls.color : '#A97620';
+  const due = entry._due;
+  let timeStr = '';
+  if(folder.dueDate && +new Date(folder.dueDate+'T'+(folder.dueTime||'23:59')) === +due){
+    timeStr = folder.dueTime || '';
+  } else {
+    const match = folderItems.find(it => +it._due === +due);
+    if(match) timeStr = match.dueTime || '';
+  }
+  const today0 = startOfToday();
+  let html = '<div class="tcard'+(folder.done?' done':'')+(overdueFlag?' overdue':'')+'" data-card-folder="'+folder.id+'" role="button" tabindex="0">' +
+    '<input type="checkbox" class="tc-check" style="--tc-fill:'+color+'" data-check-folder="'+folder.id+'" '+(folder.done?'checked':'')+' aria-label="Mark folder done">' +
+    '<div class="tc-main"><div class="tc-title">'+escapeHtml(folder.name)+'</div>' +
+    '<div class="tc-pills">' +
+      '<button type="button" class="tc-pill tc-pill-btn" data-toggle-folder="'+folder.id+'" style="background:'+color+';color:'+getContrastText(color)+'">'+(expanded ? 'CLOSE' : 'OPEN')+'</button>' +
+      (cls ? tcPill(cls.name, color) : '') +
+    '</div></div>' + tcDateBlock(due, timeStr) + '</div>';
+  html += '<div class="slide-section" data-folder-section="'+folder.id+'">';
+  if(expanded){
+    folderItems.slice().sort((a,b) => {
+      if(a.done !== b.done) return a.done ? 1 : -1;
+      return a._due - b._due;
+    }).forEach(it => {
+      html += '<div class="folder-child-item">'+todoCardAssignmentHtml(it, !it.done && it._due < today0, folder.name)+'</div>';
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
+function todoCardForEntry(entry, overdueFlag){
+  if(entry._kind === 'folder') return todoCardFolderHtml(entry, overdueFlag);
+  if(entry._kind === 'todo') return todoCardClubTaskHtml(entry, overdueFlag);
+  return todoCardAssignmentHtml(entry, overdueFlag, null);
+}
+
+function wireTodoCardClicks(list){
+  const ignore = e => !!e.target.closest('input, a, button, [data-toggle-folder]');
+  list.querySelectorAll('.tcard').forEach(card => {
+    card.addEventListener('click', e => {
+      if(ignore(e)) return;
+      const itemId = card.getAttribute('data-card-item');
+      const todoId = card.getAttribute('data-card-todo');
+      const folderId = card.getAttribute('data-card-folder');
+      if(itemId){
+        const it = items.find(i => i.id === itemId);
+        if(it) openDetailModal('item', it);
+      } else if(todoId){
+        const t = clubTodos.find(x => x.id === todoId);
+        if(t) openDetailModal('todo', t);
+      } else if(folderId){
+        const f = assignmentFolders.find(x => x.id === folderId);
+        if(f) openFoldersModalFor(f);
+      }
+    });
+    card.addEventListener('keydown', e => {
+      if((e.key === 'Enter' || e.key === ' ') && e.target === card){ e.preventDefault(); card.click(); }
+    });
+  });
+}
+
+/* ---- Details modal (opened by clicking a to-do card) ---- */
+const detailOverlay = document.getElementById('detail-overlay');
+let detailTarget = null;
+
+function detailRow(label, valueHtml, stack){
+  return '<div class="ci-row'+(stack?' stack':'')+'"><span class="ci-label">'+label+'</span><span class="ci-value">'+valueHtml+'</span></div>';
+}
+function safeLinkHtml(link){
+  if(!link || !/^https?:\/\//i.test(link)) return link ? escapeHtml(link) : '';
+  return '<a class="item-link" href="'+escapeHtml(link)+'" target="_blank" rel="noopener noreferrer">Open link ↗</a>';
+}
+function detailDueText(dateStr, timeStr){
+  const d = new Date(dateStr+'T'+(timeStr||'00:00'));
+  return d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric', year:'numeric'}) + (timeStr ? ' · '+formatTime(timeStr) : '');
+}
+
+function openDetailModal(kind, obj){
+  detailTarget = { kind, id: obj.id };
+  let rows = '', color = '#A97620';
+  if(kind === 'item'){
+    const cls = classes.find(c => c.id === obj.courseId);
+    const folder = obj.folderId ? assignmentFolders.find(f => f.id === obj.folderId) : null;
+    if(cls) color = cls.color;
+    rows += detailRow('Type', 'Assignment');
+    const courseName = cls ? cls.name : obj.course;
+    if(courseName) rows += detailRow('Class', escapeHtml(courseName));
+    if(folder) rows += detailRow('Folder', escapeHtml(folder.name));
+    rows += detailRow('Due', escapeHtml(detailDueText(obj.dueDate, obj.dueTime)));
+    rows += detailRow('Status', obj.done ? 'Completed' : 'Not completed');
+    if(obj.link) rows += detailRow('Link', safeLinkHtml(obj.link));
+    if(obj.notes) rows += detailRow('Notes', escapeHtml(obj.notes), true);
+  } else {
+    const club = clubs.find(c => c.id === obj.clubId);
+    if(club) color = club.color;
+    rows += detailRow('Type', 'Club task');
+    if(club) rows += detailRow('Club', escapeHtml(club.name));
+    rows += detailRow('Due', escapeHtml(detailDueText(obj.dueDate, obj.dueTime)));
+    rows += detailRow('Status', obj.done ? 'Completed' : 'Not completed');
+    if(obj.location) rows += detailRow('Location', escapeHtml(obj.location));
+    if(obj.link) rows += detailRow('Link', safeLinkHtml(obj.link));
+    if(obj.notes) rows += detailRow('Notes', escapeHtml(obj.notes), true);
+  }
+  document.getElementById('dt-heading').textContent = obj.title;
+  document.getElementById('dt-body').innerHTML = rows;
+  document.getElementById('detail-modal').style.borderLeft = '4px solid '+color;
+  detailOverlay.classList.add('show');
+}
+function closeDetailModal(){ detailOverlay.classList.remove('show'); detailTarget = null; }
+document.getElementById('dt-close').addEventListener('click', closeDetailModal);
+detailOverlay.addEventListener('click', e => { if(e.target === detailOverlay) closeDetailModal(); });
+document.getElementById('dt-edit').addEventListener('click', () => {
+  if(!detailTarget) return;
+  const { kind, id } = detailTarget;
+  closeDetailModal();
+  if(kind === 'item'){
+    const it = items.find(i => i.id === id);
+    if(it) openItemModal(it);
+  } else {
+    const t = clubTodos.find(x => x.id === id);
+    if(t) openTodoModal(t);
+  }
+});
+
 function renderTodoListTab(){
   const list = document.getElementById('todolist-list');
   const assignmentItems = items.filter(it => it.type === 'assignment' && !isItemArchived(it));
@@ -3655,6 +4984,8 @@ function renderTodoListTab(){
 
   const today0 = startOfToday();
   const tomorrow0 = new Date(today0.getTime() + 86400000);
+  const classic = !isMobileViewActive(); // desktop keeps the earlier row layout + grouping; mobile uses cards + 'Next 7'
+  const next7End = new Date(today0.getTime() + 8*86400000); // tomorrow through 7 days from today
   const weekEnd = new Date(today0.getTime() + 7*86400000);
   const monthEnd = new Date(today0.getFullYear(), today0.getMonth()+1, 0, 23, 59, 59, 999);
 
@@ -3667,22 +4998,27 @@ function renderTodoListTab(){
     ...clubTodos.filter(t => !isClubArchived(t.clubId)).map(t => ({...t, _kind:'todo', _due: new Date(t.dueDate+'T'+(t.dueTime||'23:59'))}))
   ];
 
-  const overdue = [], todayG = [], tomorrowG = [], thisWeek = [], thisMonth = [], later = [], done = [];
+  const overdue = [], todayG = [], tomorrowG = [], thisWeek = [], thisMonth = [], next7 = [], later = [], done = [];
   combined.forEach(entry => {
     if(entry.done){ done.push(entry); return; }
     if(entry._due < today0){ overdue.push(entry); }
     else if(entry._due < tomorrow0){ todayG.push(entry); }
-    else if(entry._due < new Date(tomorrow0.getTime()+86400000)){ tomorrowG.push(entry); }
-    else if(entry._due < weekEnd){ thisWeek.push(entry); }
-    else if(entry._due <= monthEnd){ thisMonth.push(entry); }
+    else if(classic){
+      if(entry._due < new Date(tomorrow0.getTime()+86400000)){ tomorrowG.push(entry); }
+      else if(entry._due < weekEnd){ thisWeek.push(entry); }
+      else if(entry._due <= monthEnd){ thisMonth.push(entry); }
+      else { later.push(entry); }
+    }
+    else if(entry._due < next7End){ next7.push(entry); }
     else { later.push(entry); }
   });
-  [overdue, todayG, tomorrowG, thisWeek, thisMonth, later, done].forEach(g => g.sort((a,b) => a._due - b._due));
+  [overdue, todayG, tomorrowG, thisWeek, thisMonth, next7, later, done].forEach(g => g.sort((a,b) => a._due - b._due));
+
 
   function group(title, arr, isOverdue){
     if(arr.length === 0) return '';
     let html = '<div class="group">'+(title ? '<div class="group-title'+(isOverdue?' overdue':'')+'">'+title+'</div>' : '');
-    arr.forEach(entry => { html += rowForEntry(entry, isOverdue); });
+    arr.forEach(entry => { html += classic ? rowForEntry(entry, isOverdue) : todoCardForEntry(entry, isOverdue); });
     html += '</div>';
     return html;
   }
@@ -3690,9 +5026,13 @@ function renderTodoListTab(){
   let html = '';
   html += group('Overdue', overdue, true);
   html += group('Today', todayG);
-  html += group('Tomorrow', tomorrowG);
-  html += group('This week', thisWeek);
-  html += group('This month', thisMonth);
+  if(classic){
+    html += group('Tomorrow', tomorrowG);
+    html += group('This week', thisWeek);
+    html += group('This month', thisMonth);
+  } else {
+    html += group('Next 7', next7);
+  }
   html += group('Later', later);
 
   if(done.length){
@@ -3708,6 +5048,7 @@ function renderTodoListTab(){
   });
 
   wireFolderRowEvents(list);
+  wireTodoCardClicks(list);
 
   list.querySelectorAll('[data-edit]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -3934,8 +5275,72 @@ function renderClubExceptions(club){
   });
 }
 
+/* Smooth open/close for the mobile dropdowns (height + padding + fade) */
+function animateDisclosure(el, opening, done){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){ if(done) done(); return; }
+  const cs = getComputedStyle(el);
+  const h = el.getBoundingClientRect().height;
+  const from = { height:'0px', paddingTop:'0px', paddingBottom:'0px', opacity:0 };
+  const to = { height:h+'px', paddingTop:cs.paddingTop, paddingBottom:cs.paddingBottom, opacity:1 };
+  el.style.overflow = 'hidden';
+  el.style.boxSizing = 'border-box';
+  const a = el.animate(opening ? [from,to] : [to,from], { duration:240, easing:'cubic-bezier(.4,0,.2,1)' });
+  el._anim = a;
+  a.onfinish = () => {
+    el._anim = null;
+    el.style.overflow = '';
+    el.style.boxSizing = '';
+    if(done) done();
+  };
+}
+function isMobileView(){ return document.documentElement.getAttribute('data-view') === 'mobile'; }
+
+function setClubGroup(id, open, animate){
+  const g = document.getElementById(id);
+  const body = g.querySelector('.af-group-body');
+  g.querySelector('.af-group-head').setAttribute('aria-expanded', open ? 'true' : 'false');
+  g.classList.remove('closing');
+  if(body._anim){ body._anim.cancel(); body._anim = null; body.style.overflow=''; body.style.boxSizing=''; }
+  if(!animate || !isMobileView()){ g.classList.toggle('open', open); return; }
+  if(open){
+    g.classList.add('open');
+    animateDisclosure(body, true);
+  } else {
+    g.classList.add('closing');
+    g.classList.remove('open');
+    animateDisclosure(body, false, () => g.classList.remove('closing'));
+  }
+}
+document.querySelectorAll('.af-group-head').forEach(h => {
+  h.addEventListener('click', () => {
+    const g = h.parentElement;
+    if(g.querySelector('.af-group-body')._anim) return;
+    setClubGroup(g.id, !g.classList.contains('open'), true);
+  });
+});
+
+/* Same smooth motion for the "More options" <details> in the Add/Edit forms (mobile only) */
+document.querySelectorAll('details.more-options > summary').forEach(sum => {
+  sum.addEventListener('click', e => {
+    if(!isMobileView()) return;
+    e.preventDefault();
+    const d = sum.parentElement;
+    const body = d.querySelector('.more-options-body');
+    if(body._anim) return;
+    if(d.open){
+      d.classList.add('mo-closing');
+      animateDisclosure(body, false, () => { d.open = false; d.classList.remove('mo-closing'); });
+    } else {
+      d.open = true;
+      animateDisclosure(body, true);
+    }
+  });
+});
+
 function openClubModal(club){
   document.getElementById('activity-form').reset();
+  setClubGroup('af-grp-meet', false);
+  setClubGroup('af-grp-more', false);
   document.getElementById('af-name-err').classList.remove('show');
   document.getElementById('af-meet-date-err').classList.remove('show');
   editingClubId = club ? club.id : null;
@@ -3968,11 +5373,16 @@ function openClubModal(club){
     }
   }
   rebuildDayTimeRows(prefillTimes);
+  if(club){
+    setClubGroup('af-grp-meet', !!(club.meet || club.meetTitle || club.meetStartDate || club.meetEndDate || (club.meetDays && club.meetDays.length)));
+    setClubGroup('af-grp-more', !!(club.link || club.notes));
+  }
 
   clubOverlay.classList.add('show');
   document.getElementById('af-name').focus();
 }
 document.getElementById('add-activity-btn').addEventListener('click', () => openClubModal());
+document.getElementById('clubs-add-btn').addEventListener('click', () => openClubModal());
 
 document.getElementById('activities-view-clubs-btn').addEventListener('click', () => {
   activitiesView = 'clubs';
@@ -4012,6 +5422,7 @@ document.getElementById('activity-form').addEventListener('submit', e => {
   document.getElementById('af-name-err').classList.toggle('show', !name);
   const meetDateBad = meetStartDate && meetEndDate && meetEndDate < meetStartDate;
   document.getElementById('af-meet-date-err').classList.toggle('show', !!meetDateBad);
+  if(meetDateBad) setClubGroup('af-grp-meet', true);
   if(!name || meetDateBad) return;
 
   if(editingClubId){
@@ -4293,6 +5704,8 @@ function openTodoModal(todo, defaultClubId){
   } else if(defaultClubId){
     document.getElementById('td-club').value = defaultClubId;
   }
+  // Collapsed by default; opens automatically when editing a task that already has extra details.
+  document.getElementById('td-more').open = !!(todo && (todo.location || todo.link || todo.notes));
 
   todoOverlay.classList.add('show');
   document.getElementById('td-title').focus();
@@ -4354,6 +5767,54 @@ document.getElementById('todo-form').addEventListener('submit', e => {
   renderClubs();
   renderTodoListTab();
   todoOverlay.classList.remove('show');
+});
+
+/* ---- Mobile To-Do: add button + type chooser ---- */
+const addChoiceOverlay = document.getElementById('add-choice-overlay');
+document.getElementById('todo-add-btn').addEventListener('click', () => {
+  const clubBtn = document.getElementById('add-choice-club');
+  const noClubs = clubs.length === 0;
+  clubBtn.disabled = noClubs;
+  document.getElementById('add-choice-club-note').textContent = noClubs
+    ? 'Add a club first (Clubs tab), then you can log tasks for it'
+    : 'Something to do for one of your clubs';
+  addChoiceOverlay.classList.add('show');
+});
+document.getElementById('add-choice-cancel').addEventListener('click', () => addChoiceOverlay.classList.remove('show'));
+addChoiceOverlay.addEventListener('click', e => { if(e.target === addChoiceOverlay) addChoiceOverlay.classList.remove('show'); });
+document.querySelectorAll('.add-choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(btn.disabled) return;
+    const kind = btn.getAttribute('data-kind');
+    addChoiceOverlay.classList.remove('show');
+    if(kind === 'club'){
+      openTodoModal();
+    } else {
+      openItemModal();
+      document.querySelector('input[name=if-type][value="'+kind+'"]').checked = true;
+      updateDurationFieldVisibility();
+    }
+  });
+});
+
+/* ---- Mobile Assignments: add button + type chooser ---- */
+const addAssignOverlay = document.getElementById('add-assign-overlay');
+document.getElementById('upcoming-add-btn').addEventListener('click', () => addAssignOverlay.classList.add('show'));
+document.getElementById('add-assign-cancel').addEventListener('click', () => addAssignOverlay.classList.remove('show'));
+addAssignOverlay.addEventListener('click', e => { if(e.target === addAssignOverlay) addAssignOverlay.classList.remove('show'); });
+document.querySelectorAll('.assign-choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const kind = btn.getAttribute('data-kind');
+    addAssignOverlay.classList.remove('show');
+    if(kind === 'folder'){
+      foldersOpenedFromCard = false;
+      openFoldersModal();
+    } else {
+      openItemModal();
+      document.querySelector('input[name=if-type][value="'+kind+'"]').checked = true;
+      updateDurationFieldVisibility();
+    }
+  });
 });
 
 document.getElementById('user-name-input').addEventListener('input', () => {
@@ -4436,7 +5897,7 @@ async function seedMockDataIfEmpty(){
     { id: uid(), type:'assignment', title:'Problem Set 3', courseId:calcId, course:'Calculus II',
       dueDate:isoOffset(-4), dueTime:'23:59', duration:null, isFinal:false, folderId:null,
       link:'', notes:'', done:true },
-    { id: uid(), type:'exam', title:'Midterm Exam', courseId:chemId, course:'Organic Chemistry',
+    { id: uid(), type:'exam', title:'Midterm Exam', examKind:'midterm', courseId:chemId, course:'Organic Chemistry',
       dueDate:isoOffset(14), dueTime:'13:00', duration:90, isFinal:false, folderId:null,
       link:'', notes:'Covers chapters 1–6.', done:false },
     { id: uid(), type:'exam', title:'Final Exam', courseId:calcId, course:'Calculus II',
@@ -4487,115 +5948,159 @@ async function seedMockDataIfEmpty(){
   try{ await window.storage.set('clubTodos', JSON.stringify(mockClubTodos), false); }catch(e){}
 }
 
-(async function initWithMockData(){
-  try {
-    const signedIn = await window.agendaCloud.bootstrap();
-    if(!signedIn){
-      document.getElementById('auth-overlay').classList.add('show');
-      document.getElementById('start-page').style.display = 'none';
-      document.getElementById('app-root').style.display = 'none';
-      return;
-    }
-    document.getElementById('auth-overlay').classList.remove('show');
-    await seedMockDataIfEmpty();
-    await loadData();
-    loadTheme();
-    loadViewMode();
-  } catch(e) {
-    console.error('Could not initialize cloud agenda:', e);
-    const err = document.getElementById('auth-error');
-    err.textContent = 'Could not connect to the cloud. Check your Supabase table/API settings and try again.';
-    err.classList.add('show');
-  }
-})();
+let agendaInitializationInProgress = false;
+let agendaInitializedForUser = null;
+let notificationInitializationStarted = false;
 
-async function handleAuthError(error){
-  const el = document.getElementById('auth-error');
-  el.textContent = error && error.message ? error.message : 'Something went wrong. Please try again.';
-  el.classList.add('show');
+function setAuthMessage(message, isError){
+  const status = document.getElementById('auth-status');
+  const error = document.getElementById('auth-error');
+  if(error){ error.textContent = isError ? message : ''; error.classList.toggle('show', !!isError); }
+  if(status) status.textContent = isError ? '' : (message || '');
 }
 
-document.getElementById('auth-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const status = document.getElementById('auth-status');
-  const btn = document.getElementById('auth-signin');
-  document.getElementById('auth-error').classList.remove('show');
-  btn.disabled = true; status.textContent = 'Signing in…';
-  try {
-    const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
-    if(error) throw error;
-    await window.agendaCloud.refresh();
-    document.getElementById('auth-overlay').classList.remove('show');
+function showSignInScreen(message){
+  clearTimeout(startAnimTimer);
+  clearTimeout(startSlideTimer);
+  const overlay = document.getElementById('auth-overlay');
+  overlay.classList.add('show');
+  document.getElementById('start-page').style.display = 'none';
+  document.getElementById('app-root').style.display = 'none';
+  setAuthMessage(message || '', false);
+}
+
+async function initializeSignedInAgenda(user){
+  if(!user || agendaInitializationInProgress || agendaInitializedForUser === user.id) return;
+  agendaInitializationInProgress = true;
+  try{
+    const signedIn = await window.agendaCloud.bootstrap();
+    if(!signedIn) { showSignInScreen(); return; }
     await seedMockDataIfEmpty();
     await loadData();
-    loadTheme(); loadViewMode();
-    status.textContent = '';
-  } catch(error) { await handleAuthError(error); status.textContent = ''; }
-  finally { btn.disabled = false; }
-});
-
-document.getElementById('auth-signup').addEventListener('click', async () => {
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const status = document.getElementById('auth-status');
-  document.getElementById('auth-error').classList.remove('show');
-  if(!email || password.length < 6){
-    await handleAuthError({message:'Enter an email and a password of at least 6 characters.'}); return;
-  }
-  status.textContent = 'Creating account…';
-  try {
-    const { data, error } = await window.supabaseClient.auth.signUp({
-      email, password, options:{ emailRedirectTo: window.location.href }
-    });
-    if(error) throw error;
-    if(data.session){
-      await window.agendaCloud.refresh();
-      document.getElementById('auth-overlay').classList.remove('show');
-      await loadData(); loadTheme(); loadViewMode();
-      status.textContent = '';
-    } else {
-      status.textContent = 'Account created. Check your email to confirm it, then sign in.';
+    await loadTheme();
+    await loadViewMode();
+    document.getElementById('auth-overlay').classList.remove('show');
+    document.getElementById('app-root').style.display = 'none';
+    const startPage = document.getElementById('start-page');
+    startPage.style.display = 'flex';
+    startPage.style.opacity = '';
+    startPage.style.transform = '';
+    agendaInitializedForUser = user.id;
+    if(!notificationInitializationStarted){
+      notificationInitializationStarted = true;
+      initNotifications();
     }
-  } catch(error) { await handleAuthError(error); status.textContent = ''; }
-});
-
-document.getElementById('signout-btn').addEventListener('click', async () => {
-  await window.agendaCloud.signOut();
-  document.getElementById('app-root').style.display = 'none';
-  document.getElementById('start-page').style.display = 'none';
-  document.getElementById('auth-overlay').classList.add('show');
-});
-
-window.supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-  if(session && !window.agendaCloud.ready){
-    try {
-      await window.agendaCloud.refresh();
-      document.getElementById('auth-overlay').classList.remove('show');
-    } catch(e) { console.error(e); }
+    playStartAnimation(150);
+  }catch(err){
+    console.error('Could not initialize agenda:', err);
+    showSignInScreen(err && err.message ? err.message : 'Could not connect to your agenda. Please try again.');
+    const error = document.getElementById('auth-error');
+    if(error){ error.textContent = err && err.message ? err.message : 'Could not connect to your agenda. Please try again.'; error.classList.add('show'); }
+  }finally{
+    agendaInitializationInProgress = false;
   }
-});
+}
+
+if(!window.supabaseClient){
+  showSignInScreen('Could not load the sign-in service. Check your internet connection and refresh.');
+}else{
+  document.getElementById('auth-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const button = document.getElementById('auth-signin');
+    button.disabled = true;
+    setAuthMessage('Signing in…', false);
+    try{
+      const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      if(data && data.user) await initializeSignedInAgenda(data.user);
+    }catch(err){ setAuthMessage(err.message || 'Sign-in failed. Please try again.', true); }
+    finally{ button.disabled = false; }
+  });
+
+  document.getElementById('auth-signup').addEventListener('click', async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    if(!email || !password || password.length < 6){
+      setAuthMessage('Enter a valid email and a password of at least 6 characters.', true);
+      return;
+    }
+    const button = document.getElementById('auth-signup');
+    button.disabled = true;
+    setAuthMessage('Creating your account…', false);
+    try{
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email, password,
+        options: { emailRedirectTo: window.location.href }
+      });
+      if(error) throw error;
+      if(data && data.session && data.user){
+        await initializeSignedInAgenda(data.user);
+      }else{
+        setAuthMessage('Account created. Check your email to confirm your address, then return here and sign in.', false);
+      }
+    }catch(err){ setAuthMessage(err.message || 'Account creation failed. Please try again.', true); }
+    finally{ button.disabled = false; }
+  });
+
+  window.supabaseClient.auth.onAuthStateChange((event, session) => {
+    if(session && session.user){
+      // Defer to avoid running Supabase calls inside the auth-state callback.
+      setTimeout(() => initializeSignedInAgenda(session.user), 0);
+    }else if(event === 'SIGNED_OUT'){
+      agendaInitializedForUser = null;
+      showSignInScreen('You have signed out. Sign in to continue.');
+    }
+  });
+
+  document.getElementById('signin-placeholder-btn').addEventListener('click', async () => {
+    const button = document.getElementById('signin-placeholder-btn');
+    button.disabled = true;
+    try{
+      await window.agendaCloud.signOut();
+      agendaInitializedForUser = null;
+      showSignInScreen('You have signed out. Sign in to continue.');
+    }catch(err){
+      console.error('Sign out failed:', err);
+      showNotificationToast('Sign out failed', err.message || 'Please try again.', '#9C3B4F');
+    }finally{ button.disabled = false; }
+  });
+
+  (async function checkExistingSession(){
+    try{
+      const { data, error } = await window.supabaseClient.auth.getSession();
+      if(error) throw error;
+      if(data.session && data.session.user) await initializeSignedInAgenda(data.session.user);
+      else showSignInScreen();
+    }catch(err){
+      console.error('Could not check sign-in session:', err);
+      showSignInScreen(err.message || 'Could not connect. Please refresh and try again.');
+    }
+  })();
+}
+
+const SUN_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+const MOON_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 
 async function loadTheme(){
-  let theme = 'dark';
-  try{
-    const t = await window.storage.get('theme', false);
-    theme = t ? JSON.parse(t.value) : 'dark';
-  }catch(e){ theme = 'dark'; }
-  applyTheme(theme);
+  // The app always opens in dark mode; the toggle only changes the current session.
+  applyTheme('dark');
 }
 
 function applyTheme(theme){
+  window.__allowTheme = true;
   document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('theme-toggle').textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+  Promise.resolve().then(() => { window.__allowTheme = false; });
+  const tbtn = document.getElementById('theme-toggle');
+  tbtn.innerHTML = theme === 'dark' ? MOON_ICON : SUN_ICON;
+  tbtn.setAttribute('aria-label', theme === 'dark' ? 'Night mode on. Switch to day mode' : 'Day mode on. Switch to night mode');
+  tbtn.setAttribute('title', theme === 'dark' ? 'Switch to day mode' : 'Switch to night mode');
 }
 
 document.getElementById('theme-toggle').addEventListener('click', async () => {
   const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   applyTheme(next);
-  try{ await window.storage.set('theme', JSON.stringify(next), false); }
-  catch(e){ console.error('Could not save theme', e); }
 });
 
 /* ---- Mobile / Desktop layout switch ---- */
@@ -4606,12 +6111,17 @@ async function loadViewMode(){
     mode = v ? JSON.parse(v.value) : 'desktop';
   }catch(e){ mode = 'desktop'; }
   applyViewMode(mode);
+  activateTab('todolist'); // opens on the To-Do list
+  renderTodoListTab();
+  renderSchedule();
+  loadFonts();
 }
 
 function applyViewMode(mode){
   document.documentElement.setAttribute('data-view', mode);
   document.getElementById('vms-mobile-btn').classList.toggle('active', mode === 'mobile');
   document.getElementById('vms-desktop-btn').classList.toggle('active', mode === 'desktop');
+  if(typeof placeTimerBox === 'function') placeTimerBox();
 }
 
 document.getElementById('view-mode-switch').addEventListener('click', async (e) => {
@@ -4620,6 +6130,9 @@ document.getElementById('view-mode-switch').addEventListener('click', async (e) 
   const mode = btn.getAttribute('data-mode');
   if(document.documentElement.getAttribute('data-view') === mode) return;
   applyViewMode(mode);
+  renderTodoListTab();
+  renderSchedule();
+  loadFonts();
   try{ await window.storage.set('viewMode', JSON.stringify(mode), false); }
   catch(err){ console.error('Could not save view mode', err); }
 });
@@ -4644,42 +6157,76 @@ function crossfadeViews(hideEl, showEl, duration){
     showEl.style.transition = '';
   }, duration);
 }
+let startAnimTimer = null;
+let startSlideTimer = null;
+function playStartAnimation(delay){
+  const sp = document.getElementById('start-page');
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  clearTimeout(startAnimTimer);
+  clearTimeout(startSlideTimer);
+  sp.classList.remove('playing');
+  void sp.offsetWidth; // reset to the hidden starting state
+  startAnimTimer = setTimeout(() => sp.classList.add('playing'), delay || 0);
+  // After the intro finishes and holds for a moment, slide out to the agenda.
+  startSlideTimer = setTimeout(showApp, (delay || 0) + (reduced ? 1500 : 4400));
+}
 function showStartPage(){
+  playStartAnimation(450); // begins once the page has mostly faded in
   crossfadeViews(document.getElementById('app-root'), document.getElementById('start-page'), 550);
 }
+let todoIntroTimer = null;
+function playTodoHeaderIntro(){
+  const h = document.querySelector('#panel-todolist .todo-title');
+  if(!h) return;
+  clearTimeout(todoIntroTimer);
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sub = document.querySelector('#panel-todolist .todo-sub');
+  h.classList.remove('intro-pending','intro-play');
+  if(sub) sub.classList.remove('intro-pending','intro-play');
+  if(reduced) return;
+  void h.offsetWidth;
+  h.classList.add('intro-play');
+  if(sub) sub.classList.add('intro-play');
+  todoIntroTimer = setTimeout(() => { h.classList.remove('intro-play'); if(sub) sub.classList.remove('intro-play'); }, 4600);
+}
+/* Safety net: never leave the header hidden if the start page flow doesn't run */
+setTimeout(() => {
+  const h = document.querySelector('#panel-todolist .todo-title');
+  if(h && h.classList.contains('intro-pending')) h.classList.remove('intro-pending');
+  const sub = document.querySelector('#panel-todolist .todo-sub');
+  if(sub && sub.classList.contains('intro-pending')) sub.classList.remove('intro-pending');
+}, 12000);
 function showApp(){
-  crossfadeViews(document.getElementById('start-page'), document.getElementById('app-root'), 550);
+  // The start page slides out to the left, revealing the agenda underneath.
+  const sp = document.getElementById('start-page');
+  const app = document.getElementById('app-root');
+  app.style.display = '';
+  window.scrollTo(0, 0);
+  setTimeout(playTodoHeaderIntro, 250);
+  sp.style.boxShadow = '14px 0 40px rgba(0,0,0,0.35)';
+  sp.style.transition = 'transform 800ms cubic-bezier(.65,0,.35,1)';
+  void sp.offsetWidth;
+  sp.style.transform = 'translateX(-100%)';
+  setTimeout(() => {
+    sp.style.display = 'none';
+    sp.style.transition = '';
+    sp.style.transform = '';
+    sp.style.boxShadow = '';
+  }, 830);
 }
-document.getElementById('start-agenda-btn').addEventListener('click', showApp);
 document.getElementById('go-start-page-btn').addEventListener('click', showStartPage);
+// The intro animation starts only after a valid signed-in session is loaded.
 
-/* ---- Start page: "Don't show this again" preference ---- */
-let skipStartPagePref = false;
-async function loadStartPageSkipPref(){
-  try{
-    const s = await window.storage.get('skipStartPage', false);
-    skipStartPagePref = s ? JSON.parse(s.value) : false;
-  }catch(e){ skipStartPagePref = false; }
-  return skipStartPagePref;
-}
-function renderStartSkipBtn(){
-  const btn = document.getElementById('start-skip-btn');
-  if(btn) btn.textContent = skipStartPagePref ? 'See this next time' : "Don't show this again";
-}
-(async function initStartPageSkip(){
-  await loadStartPageSkipPref();
-  renderStartSkipBtn();
-  if(skipStartPagePref){
-    document.getElementById('start-page').style.display = 'none';
-    document.getElementById('app-root').style.display = '';
-  }
-})();
-document.getElementById('start-skip-btn').addEventListener('click', async () => {
-  skipStartPagePref = !skipStartPagePref;
-  renderStartSkipBtn();
-  try{ await window.storage.set('skipStartPage', JSON.stringify(skipStartPagePref), false); }
-  catch(e){ console.error('Could not save start page preference', e); }
+/* Tap anywhere on the start page to skip ahead to the agenda */
+document.getElementById('start-page').addEventListener('click', () => {
+  if(!window.agendaCloud || !window.agendaCloud.ready) return;
+  const sp = document.getElementById('start-page');
+  if(sp.style.transform) return; // already sliding out
+  clearTimeout(startAnimTimer);
+  clearTimeout(startSlideTimer);
+  showApp();
 });
+
 
 /* ---- Mobile mode: click-and-drag scrolling (stands in for touch swipe on a real device) ---- */
 function isMobileViewActive(){
@@ -4759,14 +6306,16 @@ populateFontSelect('font-body-select');
 populateFontSelect('font-accent-select');
 
 const FONT_VAR_MAP = {
-  'font-display-select': { cssVar: '--font-display', storageKey: 'fontDisplay', fallback: 'Space Grotesk' },
+  'font-display-select': { cssVar: '--font-display', storageKey: 'fontDisplay', fallback: 'Manrope' },
   'font-body-select': { cssVar: '--font-body', storageKey: 'fontBody', fallback: 'Inter' },
-  'font-accent-select': { cssVar: '--font-accent', storageKey: 'fontAccent', fallback: 'Manrope' }
+  'font-accent-select': { cssVar: '--font-accent', storageKey: 'fontAccent', fallback: 'Merriweather' }
 };
 
 function applyFont(selectId, fontName){
   const cfg = FONT_VAR_MAP[selectId];
-  document.documentElement.style.setProperty(cfg.cssVar, '\''+fontName+'\', sans-serif');
+  const SERIF_FONTS = ['Source Serif 4','Playfair Display','Lora','Merriweather','Libre Baskerville','Crimson Pro'];
+  const generic = SERIF_FONTS.includes(fontName) ? 'serif' : 'sans-serif';
+  document.documentElement.style.setProperty(cfg.cssVar, '\''+fontName+'\', '+generic);
   document.getElementById(selectId).value = fontName;
 }
 
@@ -4793,6 +6342,21 @@ Object.keys(FONT_VAR_MAP).forEach(selectId => {
 });
 
 loadFonts();
+
+
+/* ---- Header dropdown menu ---- */
+(function(){
+  const menu = document.getElementById('header-menu');
+  const btn = document.getElementById('header-menu-btn');
+  function setOpen(open){
+    menu.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', () => setOpen(!menu.classList.contains('open')));
+  document.addEventListener('click', e => { if(!menu.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') setOpen(false); });
+  window.headerMenuSetOpen = setOpen;
+})();
 
 /* ---- Class timer ---- */
 function getActiveOrUpcomingClass(){
@@ -4831,6 +6395,20 @@ function getActiveOrUpcomingClass(){
 
 const EXAM_LOOKAHEAD_MS = 2*60*60*1000;
 const dismissedCelebrations = new Set();
+let dismissedLoaded = false;
+/* A dismissal is remembered per exam *and* its date/time/length, so a rescheduled exam can celebrate again */
+function celebrationKey(it){ return it.id + '|' + it.dueDate + 'T' + (it.dueTime || '') + '|' + it.duration; }
+async function saveDismissedCelebrations(){
+  try{ await window.storage.set('dismissedCelebrations', JSON.stringify(Array.from(dismissedCelebrations)), false); }
+  catch(e){ console.error('Could not save dismissed celebrations', e); }
+}
+async function loadDismissedCelebrations(){
+  try{
+    const s = await window.storage.get('dismissedCelebrations', false);
+    if(s){ JSON.parse(s.value).forEach(k => dismissedCelebrations.add(k)); }
+  }catch(e){ /* nothing saved yet */ }
+  dismissedLoaded = true;
+}
 
 function getExamTimerState(){
   const now = new Date();
@@ -4839,14 +6417,14 @@ function getExamTimerState(){
 
   items.forEach(it => {
     if(it.type !== 'exam' || !it.duration || it.done) return;
-    if(dismissedCelebrations.has(it.id)) return;
+    if(dismissedCelebrations.has(celebrationKey(it))) return;
     if(isItemArchived(it)) return;
     const start = new Date(it.dueDate + 'T' + (it.dueTime || '00:00'));
     const end = new Date(start.getTime() + it.duration*60000);
     const windowStart = new Date(start.getTime() - EXAM_LOOKAHEAD_MS);
 
     if(now >= end){
-      if(!justEnded || end > justEnded.end) justEnded = { exam: it, end };
+      if(dismissedLoaded && (!justEnded || end > justEnded.end)) justEnded = { exam: it, end };
     } else if(now >= windowStart && now < start){
       if(!best || start < best.target) best = { mode: 'upcoming', exam: it, target: start };
     } else if(now >= start && now < end){
@@ -4870,7 +6448,7 @@ function formatCountdown(ms){
 let currentCelebratingExamId = null;
 
 function applyTimerColor(box, color){
-  const isLight = document.documentElement.getAttribute('data-theme') !== 'dark';
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   box.style.borderColor = color;
   box.style.background = isLight ? color : hexToRgba(color, 0.16);
 }
@@ -4886,6 +6464,7 @@ function setCelebrating(on){
   links.style.display = on ? 'none' : 'flex';
   summary.style.display = on ? 'none' : '';
   box.classList.toggle('celebrating', on);
+  window._wasCelebrating = on;
 
   titleBlock.style.display = on ? 'none' : '';
   header.style.justifyContent = on ? 'center' : '';
@@ -4893,11 +6472,29 @@ function setCelebrating(on){
 }
 
 document.getElementById('timer-dismiss-btn').addEventListener('click', () => {
-  if(currentCelebratingExamId) dismissedCelebrations.add(currentCelebratingExamId);
+  if(currentCelebratingExamId){
+    const ex = items.find(i => i.id === currentCelebratingExamId);
+    if(ex){ dismissedCelebrations.add(celebrationKey(ex)); saveDismissedCelebrations(); }
+  }
   updateClassTimer();
 });
 
+function placeTimerBox(){
+  const box = document.getElementById('class-timer-box');
+  const slot = document.getElementById('header-timer-slot');
+  const panel = document.getElementById('header-menu-panel');
+  if(!box || !slot || !panel) return;
+  // mobile: active timer shows above the menu; inactive (or desktop) it stays inside the menu panel
+  const target = (isMobileViewActive() && !box.classList.contains('inactive')) ? slot : panel;
+  if(box.parentElement !== target) target.appendChild(box);
+}
+
 function updateClassTimer(){
+  updateClassTimerCore();
+  placeTimerBox();
+}
+
+function updateClassTimerCore(){
   const box = document.getElementById('class-timer-box');
   const examState = getExamTimerState();
 
@@ -4911,7 +6508,7 @@ function updateClassTimer(){
     applyTimerColor(box, color);
     box.querySelector('.ct-top').textContent = 'CONGRATULATIONS!';
     box.querySelector('.ct-time').textContent = '';
-    box.querySelector('.ct-bottom').textContent = 'YOU COMPLETED YOUR ' + (cls ? cls.name.toUpperCase() : exam.title.toUpperCase()) + (exam.isFinal ? ' FINAL EXAM!' : ' EXAM!');
+    box.querySelector('.ct-bottom').textContent = 'YOU COMPLETED YOUR ' + (cls ? cls.name.toUpperCase() : exam.title.toUpperCase()) + (' ' + examLabel(exam).toUpperCase() + '!');
     return;
   }
   currentCelebratingExamId = null;
@@ -4924,11 +6521,13 @@ function updateClassTimer(){
     box.classList.remove('inactive');
     applyTimerColor(box, color);
     const countdown = formatCountdown(examState.best.target - new Date());
+    box.querySelector('.ct-m-top').textContent = examState.best.mode === 'in' ? 'Time Left In' : 'Time Until';
+    box.querySelector('.ct-m-bottom').textContent = (cls ? cls.name : exam.title) + ' ' + examLabel(exam);
     box.querySelector('.ct-top').textContent = 'You have';
     box.querySelector('.ct-time').textContent = countdown;
     box.querySelector('.ct-bottom').textContent = examState.best.mode === 'in'
-      ? 'left in ' + (cls ? cls.name : exam.title) + (exam.isFinal ? ' final exam.' : ' exam.')
-      : 'until ' + (cls ? cls.name : exam.title) + (exam.isFinal ? ' final exam.' : ' exam.');
+      ? 'left in ' + (cls ? cls.name : exam.title) + (' ' + examLabel(exam).toLowerCase() + '.')
+      : 'until ' + (cls ? cls.name : exam.title) + (' ' + examLabel(exam).toLowerCase() + '.');
     return;
   }
 
@@ -4948,6 +6547,8 @@ function updateClassTimer(){
   const color = result.cls.color;
   applyTimerColor(box, color);
   const countdown = formatCountdown(result.target - new Date());
+  box.querySelector('.ct-m-top').textContent = result.mode === 'in' ? 'Time Left In' : 'Time Until';
+  box.querySelector('.ct-m-bottom').textContent = result.cls.name;
   box.querySelector('.ct-top').textContent = 'You have';
   box.querySelector('.ct-time').textContent = countdown;
   box.querySelector('.ct-bottom').textContent = result.mode === 'in'
@@ -4955,6 +6556,7 @@ function updateClassTimer(){
     : 'until ' + result.cls.name + ' starts.';
 }
 
+loadDismissedCelebrations().then(updateClassTimer);
 updateClassTimer();
 setInterval(updateClassTimer, 1000);
 
@@ -5038,7 +6640,7 @@ function gatherNotifiableEvents(){
     const target = new Date(it.dueDate + 'T' + it.dueTime);
     const cls = classes.find(c => c.id === it.courseId);
     const color = cls ? cls.color : (it.type==='exam' ? '#453876' : '#6E3F82');
-    const label = it.type === 'exam' ? it.title + (it.isFinal ? ' (final exam)' : ' (exam)') : it.title;
+    const label = it.type === 'exam' ? it.title + (' (' + examLabel(it).toLowerCase() + ')') : it.title;
     events.push({ id: 'item-'+it.id, target, color, title: label, detail: 'due' });
   });
 
@@ -5090,7 +6692,7 @@ async function initNotifications(){
   checkNotifications();
   setInterval(checkNotifications, 20000);
 }
-initNotifications();
+// initNotifications() is started after authentication and agenda data load.
 
 </script>
 </body>
