@@ -533,6 +533,10 @@ if (window.supabase && window.SUPABASE_URL && window.SUPABASE_PUBLISHABLE_KEY) {
     header.top #header-quick-links{width:100%;flex-wrap:wrap;justify-content:center;}
   }
 
+  
+html[data-view="mobile"] #go-start-page-btn {
+  display: none;
+}
   /* ---- Forced mobile layout (via the Mobile/Desktop switch, independent of real viewport width) ---- */
   html[data-view="mobile"] .app{
     max-width:410px;margin:26px auto;padding:18px 14px 60px;
