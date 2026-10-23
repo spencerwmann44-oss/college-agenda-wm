@@ -5013,8 +5013,17 @@ function renderTodoListTab(){
       else if(entry._due <= monthEnd){ thisMonth.push(entry); }
       else { later.push(entry); }
     }
+
+    else if(classic){
+      if(entry._due < new Date(tomorrow0.getTime()+86400000)){ tomorrowG.push(entry); }
+      else if(entry._due < weekEnd){ thisWeek.push(entry); }
+      else if(entry._due <= monthEnd){ thisMonth.push(entry); }
+      else { later.push(entry); }
+    }
+    else if(entry._due < new Date(tomorrow0.getTime()+86400000)){ tomorrowG.push(entry); }
     else if(entry._due < next7End){ next7.push(entry); }
     else { later.push(entry); }
+
   });
   [overdue, todayG, tomorrowG, thisWeek, thisMonth, next7, later, done].forEach(g => g.sort((a,b) => a._due - b._due));
 
@@ -5034,9 +5043,12 @@ function renderTodoListTab(){
     html += group('Tomorrow', tomorrowG);
     html += group('This week', thisWeek);
     html += group('This month', thisMonth);
+
   } else {
+    html += group('Tomorrow', tomorrowG);
     html += group('Next 7', next7);
   }
+
   html += group('Later', later);
 
   if(done.length){
