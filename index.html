@@ -1438,10 +1438,7 @@ html[data-view="mobile"] #go-start-page-btn {
     <div id="header-title-block">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <div class="date-block" id="today-label"></div>
-        <div class="view-mode-switch" id="view-mode-switch" role="group" aria-label="Layout mode">
-          <button type="button" class="vms-opt" id="vms-mobile-btn" data-mode="mobile">Mobile</button>
-          <button type="button" class="vms-opt active" id="vms-desktop-btn" data-mode="desktop">Desktop</button>
-        </div>
+       
         <button type="button" class="start-page-link" id="go-start-page-btn">Open</button>
       </div>
       <h1 id="agenda-heading">Your agenda</h1>
@@ -6328,15 +6325,32 @@ document.getElementById('theme-toggle').addEventListener('click', async () => {
   applyTheme(next);
 });
 
-/* ---- Mobile / Desktop layout switch ---- */
-async function loadViewMode(){
-  let mode = 'desktop';
-  try{
-    const v = await window.storage.get('viewMode', false);
-    mode = v ? JSON.parse(v.value) : 'desktop';
-  }catch(e){ mode = 'desktop'; }
+/* ---- Automatic Mobile / Desktop layout detection ---- */
+let viewModeQuery = null;
+
+function handleViewModeChange(){
+  const mode = viewModeQuery.matches ? 'mobile' : 'desktop';
+
+  if(document.documentElement.getAttribute('data-view') === mode) return;
+
   applyViewMode(mode);
-  activateTab('todolist'); // opens on the To-Do list
+  renderTodoListTab();
+  renderSchedule();
+  loadFonts();
+}
+
+async function loadViewMode(){
+  if(viewModeQuery){
+    viewModeQuery.removeEventListener('change', handleViewModeChange);
+  }
+
+  viewModeQuery = window.matchMedia('(max-width: 767px)');
+
+  applyViewMode(viewModeQuery.matches ? 'mobile' : 'desktop');
+
+  viewModeQuery.addEventListener('change', handleViewModeChange);
+
+  activateTab('todolist');
   renderTodoListTab();
   renderSchedule();
   loadFonts();
@@ -6344,24 +6358,10 @@ async function loadViewMode(){
 
 function applyViewMode(mode){
   document.documentElement.setAttribute('data-view', mode);
-  document.getElementById('vms-mobile-btn').classList.toggle('active', mode === 'mobile');
-  document.getElementById('vms-desktop-btn').classList.toggle('active', mode === 'desktop');
+
   if(typeof placeTimerBox === 'function') placeTimerBox();
 }
-
-document.getElementById('view-mode-switch').addEventListener('click', async (e) => {
-  const btn = e.target.closest('.vms-opt');
-  if(!btn) return;
-  const mode = btn.getAttribute('data-mode');
-  if(document.documentElement.getAttribute('data-view') === mode) return;
-  applyViewMode(mode);
-  renderTodoListTab();
-  renderSchedule();
-  loadFonts();
-  try{ await window.storage.set('viewMode', JSON.stringify(mode), false); }
-  catch(err){ console.error('Could not save view mode', err); }
-});
-
+  
 /* ---- Start page ---- */
 function crossfadeViews(hideEl, showEl, duration){
   showEl.style.transition = 'none';
