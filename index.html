@@ -2172,31 +2172,33 @@ html[data-view="mobile"] #go-start-page-btn {
   }
 
   function applyRemoteData(remoteData){
-    if(!remoteData || typeof remoteData !== 'object') return;
+  if(!remoteData || typeof remoteData !== 'object') return;
 
-    const previous = JSON.stringify(cloudData);
-    const merged = { ...remoteData };
+  const previous = JSON.stringify(cloudData);
+  const merged = { ...remoteData };
 
-    dirtyKeys.forEach(k => {
-      if(Object.prototype.hasOwnProperty.call(cloudData,k))
-        merged[k] = cloudData[k];
-      else
-        delete merged[k];
-    });
+  dirtyKeys.forEach(k => {
+    if(Object.prototype.hasOwnProperty.call(cloudData,k))
+      merged[k] = cloudData[k];
+    else
+      delete merged[k];
+  });
 
-    cloudData = merged;
-    cacheCloudData();
+  cloudData = merged;
+  cacheCloudData();
 
-    if(JSON.stringify(cloudData) !== previous){
-      clearTimeout(remoteReloadTimer);
-      remoteReloadTimer = setTimeout(() => {
-        if(cloudReady &&
-           typeof window.loadAgendaFromCloud === 'function'){
-          window.loadAgendaFromCloud();
-        }
-      }, 120);
-    }
+  if(JSON.stringify(cloudData) !== previous){
+    clearTimeout(remoteReloadTimer);
+
+    remoteReloadTimer = setTimeout(() => {
+      if(cloudReady && typeof window.loadData === 'function'){
+        window.loadData().catch(error => {
+          console.error('Could not refresh agenda:', error);
+        });
+      }
+    }, 120);
   }
+}
 
   function startRealtime(){
     if(!cloudUser || !window.supabaseClient) return;
@@ -2222,93 +2224,74 @@ html[data-view="mobile"] #go-start-page-btn {
       });
   }
 
-  async function pushCloud(){
-    if(!cloudReady || !cloudUser ||
-       pushInProgress || dirtyKeys.size === 0) return;
+async function pushCloud(){
+  if(!cloudReady || !cloudUser ||
+     pushInProgress || dirtyKeys.size === 0) return;
 
-    pushInProgress = true;
+  pushInProgress = true;
 
-    const userId = cloudUser.id;
-    const keysBeingSaved = new Set(dirtyKeys);
-    const versionsBeingSaved = new Map();
-    const valuesBeingSaved = {};
+  const userId = cloudUser.id;
+  const keysBeingSaved = new Set(dirtyKeys);
+  const versionsBeingSaved = new Map();
+  const valuesBeingSaved = {};
+  const deletedKeys = [];
 
-    keysBeingSaved.forEach(k => {
-      versionsBeingSaved.set(k, keyVersions.get(k) || 0);
-      if(Object.prototype.hasOwnProperty.call(cloudData,k))
-        valuesBeingSaved[k] = cloudData[k];
+  keysBeingSaved.forEach(k => {
+    versionsBeingSaved.set(k, keyVersions.get(k) || 0);
+
+    if(Object.prototype.hasOwnProperty.call(cloudData,k)){
+      valuesBeingSaved[k] = cloudData[k];
+    } else {
+      deletedKeys.push(k);
+    }
+  });
+
+  try {
+    const { data: savedData, error } =
+      await window.supabaseClient.rpc('merge_agenda_data', {
+        p_updates: valuesBeingSaved,
+        p_deleted_keys: deletedKeys
+      });
+
+    if(error) throw error;
+
+    if(!cloudUser || cloudUser.id !== userId) return;
+
+    const currentData = { ...cloudData };
+
+    cloudData = savedData && typeof savedData === 'object'
+      ? savedData : { ...cloudData };
+
+    // Preserve any edits made while the save was running.
+    dirtyKeys.forEach(k => {
+      if(Object.prototype.hasOwnProperty.call(currentData,k))
+        cloudData[k] = currentData[k];
+      else
+        delete cloudData[k];
     });
 
-    try {
-      const { data: latestRow, error: readError } =
-        await window.supabaseClient
-          .from('agenda_data')
-          .select('data')
-          .eq('user_id', userId)
-          .maybeSingle();
+    // Clear only the keys that did not change during this save.
+    keysBeingSaved.forEach(k => {
+      if((keyVersions.get(k) || 0) === versionsBeingSaved.get(k))
+        dirtyKeys.delete(k);
+    });
 
-      if(readError) throw readError;
+    cacheCloudData();
 
-      const latest = latestRow &&
-        latestRow.data &&
-        typeof latestRow.data === 'object'
-          ? latestRow.data : {};
+  } catch(error) {
+    console.error('Supabase sync error:', error);
 
-      const merged = { ...latest };
+    if(cloudReady && dirtyKeys.size)
+      schedulePush(2000);
 
-      keysBeingSaved.forEach(k => {
-        if(Object.prototype.hasOwnProperty.call(valuesBeingSaved,k))
-          merged[k] = valuesBeingSaved[k];
-        else
-          delete merged[k];
-      });
+  } finally {
+    pushInProgress = false;
 
-      const payload = {
-        user_id: userId,
-        data: merged,
-        updated_at: new Date().toISOString()
-      };
-
-      const { error: writeError } =
-        await window.supabaseClient
-          .from('agenda_data')
-          .upsert(payload, { onConflict:'user_id' });
-
-      if(writeError) throw writeError;
-      if(!cloudUser || cloudUser.id !== userId) return;
-
-      // Start with what was successfully saved.
-      const currentData = { ...cloudData };
-      cloudData = merged;
-
-      // Preserve any edits made while the upload was running.
-      dirtyKeys.forEach(k => {
-        if(Object.prototype.hasOwnProperty.call(currentData,k))
-          cloudData[k] = currentData[k];
-        else
-          delete cloudData[k];
-      });
-
-      // Only clear a dirty flag if that key has not changed
-      // since this particular upload began.
-      keysBeingSaved.forEach(k => {
-        if((keyVersions.get(k) || 0) === versionsBeingSaved.get(k))
-          dirtyKeys.delete(k);
-      });
-
-      cacheCloudData();
-
-    } catch(error) {
-      console.error('Supabase sync error:', error);
-      if(cloudReady && dirtyKeys.size)
-        schedulePush(2000);
-    } finally {
-      pushInProgress = false;
-      if(dirtyKeys.size)
-        schedulePush();
-    }
+    if(dirtyKeys.size)
+      schedulePush();
   }
-
+}
+  
   function schedulePush(delay = 350){
     clearTimeout(saveTimer);
     saveTimer = setTimeout(pushCloud, delay);
