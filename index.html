@@ -1445,6 +1445,7 @@ html[data-view="mobile"] #go-start-page-btn {
     </div>
     <div id="header-actions-row">
       <div class="summary" id="summary-line">Loading…</div>
+      <button type="button" class="btn secondary" id="save-agenda-btn">Save</button>
       <div id="header-timer-slot"></div>
       <div class="header-menu" id="header-menu">
         <button type="button" class="header-menu-bar" id="header-menu-btn" aria-expanded="false" aria-controls="header-menu-panel">
@@ -2140,7 +2141,8 @@ html[data-view="mobile"] #go-start-page-btn {
   const CLOUD_KEYS = [
     'classes','items','userName','clubs','clubActivities','clubTodos',
     'breaks','assignmentFolders','theme','viewMode','skipStartPage',
-    'fontDisplay','fontBody','fontAccent','notifiedKeys'
+    'fontDisplay','fontBody','fontAccent','notifiedKeys',
+'dismissedCelebrations'
   ];
 
   const localGet = key => localStorage.getItem(STORAGE_PREFIX + key);
@@ -2150,6 +2152,7 @@ html[data-view="mobile"] #go-start-page-btn {
   let cloudReady = false;
   let cloudUser = null;
   let cloudData = {};
+  let cloudUpdatedAt = null;
   let saveTimer = null;
   let syncChannel = null;
   let pushInProgress = false;
@@ -2171,7 +2174,7 @@ html[data-view="mobile"] #go-start-page-btn {
     });
   }
 
-  function applyRemoteData(remoteData){
+  function applyRemoteData(remoteData, updatedAt){
   if(!remoteData || typeof remoteData !== 'object') return;
 
   const previous = JSON.stringify(cloudData);
@@ -2185,6 +2188,7 @@ html[data-view="mobile"] #go-start-page-btn {
   });
 
   cloudData = merged;
+    if(updatedAt) cloudUpdatedAt = updatedAt;
   cacheCloudData();
 
   if(JSON.stringify(cloudData) !== previous){
@@ -2214,8 +2218,8 @@ html[data-view="mobile"] #go-start-page-btn {
         table: 'agenda_data',
         filter: 'user_id=eq.' + cloudUser.id
       }, payload => {
-        if(payload.new && payload.new.data)
-          applyRemoteData(payload.new.data);
+      if(payload.new && payload.new.data)
+        applyRemoteData(payload.new.data, payload.new.updated_at);
       })
       .subscribe(status => {
         if(status === 'CHANNEL_ERROR' || status === 'TIMED_OUT'){
@@ -2223,6 +2227,7 @@ html[data-view="mobile"] #go-start-page-btn {
         }
       });
   }
+
 
 async function pushCloud(){
   if(!cloudReady || !cloudUser ||
@@ -2247,7 +2252,7 @@ async function pushCloud(){
   });
 
   try {
-    const { data: savedData, error } =
+    const { data: saveResult, error } =
       await window.supabaseClient.rpc('merge_agenda_data', {
         p_updates: valuesBeingSaved,
         p_deleted_keys: deletedKeys
@@ -2257,12 +2262,17 @@ async function pushCloud(){
 
     if(!cloudUser || cloudUser.id !== userId) return;
 
+    if(!saveResult || !saveResult.data ||
+       typeof saveResult.data !== 'object'){
+      throw new Error('Supabase returned an invalid save response.');
+    }
+
     const currentData = { ...cloudData };
 
-    cloudData = savedData && typeof savedData === 'object'
-      ? savedData : { ...cloudData };
+    cloudData = saveResult.data;
+    cloudUpdatedAt = saveResult.updated_at;
 
-    // Preserve any edits made while the save was running.
+    // Preserve edits made while the upload was running.
     dirtyKeys.forEach(k => {
       if(Object.prototype.hasOwnProperty.call(currentData,k))
         cloudData[k] = currentData[k];
@@ -2270,7 +2280,7 @@ async function pushCloud(){
         delete cloudData[k];
     });
 
-    // Clear only the keys that did not change during this save.
+    // Clear only keys that have not changed during this upload.
     keysBeingSaved.forEach(k => {
       if((keyVersions.get(k) || 0) === versionsBeingSaved.get(k))
         dirtyKeys.delete(k);
@@ -2329,15 +2339,16 @@ async function pushCloud(){
       const { data: row, error } =
         await window.supabaseClient
           .from('agenda_data')
-          .select('data')
+          .select('data, updated_at')
           .eq('user_id', cloudUser.id)
           .maybeSingle();
 
       if(error) throw error;
 
-      if(row && row.data && typeof row.data === 'object'){
-        cloudData = row.data;
-        cacheCloudData();
+if(row && row.data && typeof row.data === 'object'){
+  cloudData = row.data;
+  cloudUpdatedAt = row.updated_at;
+  cacheCloudData();
       } else {
         const localData = {};
 
@@ -2377,7 +2388,98 @@ async function pushCloud(){
       await window.supabaseClient.auth.signOut();
     },
 
-    syncNow: pushCloud
+    
+async saveSnapshot(){
+  if(!cloudReady || !cloudUser)
+    throw new Error('Please sign in before saving.');
+
+  if(pushInProgress)
+    throw new Error('Automatic sync is still running. Please try again.');
+
+  clearTimeout(saveTimer);
+
+  // Finish pending automatic saves first.
+  if(dirtyKeys.size)
+    await pushCloud();
+
+  if(pushInProgress || dirtyKeys.size)
+    throw new Error('Automatic sync has not finished. Please try again.');
+
+  const userId = cloudUser.id;
+  const expectedUpdatedAt = cloudUpdatedAt;
+
+  if(!expectedUpdatedAt)
+    throw new Error('Database timestamp is unavailable. Please refresh.');
+
+  const snapshot = { ...cloudData };
+  const versionsAtStart = new Map(keyVersions);
+
+  pushInProgress = true;
+
+  try {
+    const { data: result, error } =
+      await window.supabaseClient.rpc('save_agenda_snapshot', {
+        p_snapshot: snapshot,
+        p_expected_updated_at: expectedUpdatedAt
+      });
+
+    if(error) throw error;
+
+    if(!cloudUser || cloudUser.id !== userId)
+      throw new Error('Your session changed during the save.');
+
+    if(!result || !result.data ||
+       typeof result.data !== 'object' || !result.updated_at){
+      throw new Error('Invalid response from Supabase.');
+    }
+
+    // Check whether a newer remote update arrived during the save.
+    const observedTime = Date.parse(cloudUpdatedAt);
+    const savedTime = Date.parse(result.updated_at);
+    const expectedTime = Date.parse(expectedUpdatedAt);
+
+    if(Number.isFinite(observedTime) &&
+       observedTime !== expectedTime &&
+       observedTime !== savedTime){
+      throw new Error(
+        'A newer update arrived during saving. Refresh before trying again.'
+      );
+    }
+
+    const currentData = { ...cloudData };
+
+    cloudData = result.data;
+    cloudUpdatedAt = result.updated_at;
+
+    // Preserve edits made while the save was running.
+    dirtyKeys.forEach(k => {
+      if(Object.prototype.hasOwnProperty.call(currentData,k))
+        cloudData[k] = currentData[k];
+      else
+        delete cloudData[k];
+
+      if((keyVersions.get(k) || 0) ===
+         (versionsAtStart.get(k) || 0)){
+        dirtyKeys.delete(k);
+      }
+    });
+
+    cacheCloudData();
+
+    return cloudUpdatedAt;
+
+  } finally {
+    pushInProgress = false;
+
+    if(dirtyKeys.size)
+      schedulePush();
+  }
+},
+
+
+syncNow: pushCloud
+
+
   };
 
   window.storage = {
@@ -6423,6 +6525,52 @@ function showApp(){
   }, 830);
 }
 document.getElementById('go-start-page-btn').addEventListener('click', showStartPage);
+  
+const saveButton = document.getElementById('save-agenda-btn');
+
+if(saveButton){
+  saveButton.addEventListener('click', async () => {
+    if(!window.agendaCloud || !window.agendaCloud.ready){
+      showNotificationToast(
+        'Not signed in',
+        'Please sign in before saving.',
+        '#9C3B4F'
+      );
+      return;
+    }
+
+    saveButton.disabled = true;
+    saveButton.textContent = 'Saving…';
+
+    try{
+      await window.agendaCloud.saveSnapshot();
+
+      saveButton.textContent = 'Saved!';
+      showNotificationToast(
+        'Agenda saved',
+        'Your full agenda has been saved to Supabase.',
+        '#32865A'
+      );
+
+    }catch(error){
+      console.error('Manual save failed:', error);
+
+      saveButton.textContent = 'Save';
+      showNotificationToast(
+        'Save failed',
+        error.message || 'Please try again.',
+        '#9C3B4F'
+      );
+
+    }finally{
+      setTimeout(() => {
+        saveButton.disabled = false;
+        saveButton.textContent = 'Save';
+      }, 1800);
+    }
+  });
+}
+
 // The intro animation starts only after a valid signed-in session is loaded.
 
 /* Tap anywhere on the start page to skip ahead to the agenda */
